@@ -1,37 +1,44 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
+import { auth } from "../utils/firebaseConfig";
 
-export const userAuthenticate = async (user: string) => {
-  if (!user) {
-    throw new Error("No user found");
+export const userAuthenticate = async (firebaseIdToken: string) => {
+  if (!firebaseIdToken) {
+    throw new Error("No firebaseIdToken found");
   }
   try {
-    console.log(
-      "Authenticating user:",
-      user,
-      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/rider/auth`
-    );
     const res = await axios.post(
       `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/rider/auth`,
-      { idToken: user },
+      { idToken: firebaseIdToken },
       {
         headers: {
           "Content-Type": "application/json",
         },
       }
     );
-    const jwtToken = res.headers["authorization"]?.split(" ")[1];
+    console.log("Authentication response:", res);
+    const jwtToken = res.data?.data?.token;
     if (jwtToken) {
+      console.log("JWT stored successfully", jwtToken);
       save("authToken", jwtToken);
-      console.log("JWT stored successfully");
     } else {
       throw new Error("No token returned from server");
     }
     return res;
-  } catch (error) {
-    console.error("Error authenticating user:", error);
-    throw error;
+  } catch (err: any) {
+    if (
+      err.response?.status === 401 &&
+      err.response?.data?.error === "TOKEN_EXPIRED"
+    ) {
+      const newIdToken = await auth.currentUser?.getIdToken(true);
+      if (!newIdToken) {
+        throw new Error("Unable to refresh Firebase ID token");
+      }
+      return await userAuthenticate(newIdToken);
+    }
+    console.error("Error authenticating user:", err);
+    throw err;
   }
 };
 
@@ -56,6 +63,7 @@ export const userProfile = async () => {
 export async function save(key: string, value: string) {
   try {
     if (Platform.OS === "web") {
+      console.log("Saving to localStorage:", key, value);
       localStorage.setItem(key, value); // Web
     } else {
       // mobile

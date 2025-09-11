@@ -14,6 +14,7 @@ const ProfilePage = () => {
     if (!user) {
       getUser(); // fetch and store user
     }
+    console.log("Profile user:", user);
   }, [user]);
 
   if (!user) {

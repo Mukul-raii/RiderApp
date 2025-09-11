@@ -3,7 +3,6 @@ import { userAuth } from "@/src/stores/user";
 import { firebaseAuth } from "@/src/utils/userAuth";
 import { Link, useRouter } from "expo-router";
 import { navigate } from "expo-router/build/global-state/routing";
-import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -109,7 +108,7 @@ export default function Index() {
           </TouchableOpacity>
 
           {/* Footer */}
-          {type === "login" ? (
+          {type === "register" ? (
             <Text className="text-center text-gray-500 mt-4">
               Already have an account?{" "}
               <Text

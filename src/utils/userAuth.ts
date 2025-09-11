@@ -50,11 +50,22 @@ export const firebaseAuth = async (
   }
 };
 
-onIdTokenChanged(auth, async (user) => {
-  if (user) {
-    const token = await user.getIdToken();
-    await save("authToken", token);
+/* onIdTokenChanged(auth, async (user) => {
+  if (user && !authTokenUpdated) {
+    console.log(
+      "User ID token changed. Updating stored token.",
+      await auth.currentUser?.getIdToken()
+    );
+    try {
+      const idToken = await user.getIdToken();
+      const authtoken = await userAuthenticate(idToken);
+      console.log("Updated auth token:", authtoken);
+      await save("authToken", authtoken.data?.data?.token);
+    } catch (error) {
+      console.error("Error updating auth token:", error);
+    }
   } else {
     await deleteValueFor("authToken");
   }
 });
+ */
