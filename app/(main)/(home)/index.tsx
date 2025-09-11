@@ -1,3 +1,4 @@
+import { searchRide } from "@/app/components/searchRide";
 import { getRide } from "@/src/stores/rider";
 import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -8,7 +9,10 @@ const Page = () => {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const startRide = getRide((state) => state.startRide);
+  const loading = getRide((state) => state.loading);
+  const rideData = getRide((state) => state.ride);
 
+  console.log("Current ride data:", rideData);
   const onSubmit = async () => {
     console.log({ from, to });
     const res = await startRide(from, to);
@@ -16,7 +20,7 @@ const Page = () => {
   };
 
   return (
-    <View className="flex-1 justify-center items-center bg-white px-6">
+    <View className="flex-1 justify-start items-start bg-white px-6 py-10 ">
       <Text className="text-lg font-semibold mb-6">Welcome back,</Text>
 
       <TextInput
@@ -41,6 +45,22 @@ const Page = () => {
           Start Ride
         </Text>
       </TouchableOpacity>
+      {loading && (
+        <View className="absolute bottom-5 right-5 p-4 rounded-xl border border-blue-400 bg-blue-200 shadow-lg">
+          <Text className="font-semibold text-gray-800" onPress={searchRide}>
+            Searching for rides nearby...
+          </Text>
+        </View>
+      )}
+      {rideData && (
+        <View className="flex-1 justify-start items-start bg-white px-6 py-10 ">
+          <Text className="mt-6 text-lg font-semibold">Ride Details:</Text>
+          <Text className="mt-2 text-gray-700">Ride ID: {rideData.id}</Text>
+          <Text className="mt-2 text-gray-700">From: {rideData.from}</Text>
+          <Text className="mt-2 text-gray-700">To: {rideData.to}</Text>
+          <Text className="mt-2 text-gray-700">Status: {rideData.status}</Text>
+        </View>
+      )}
     </View>
   );
 };

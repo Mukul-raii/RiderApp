@@ -1,3 +1,4 @@
+import { LoadingSpinners } from "@/app/components/loadingScreens";
 import { userStore } from "@/src/stores/user";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
@@ -6,23 +7,19 @@ import { auth } from "../../../src/utils/firebaseConfig";
 
 const ProfilePage = () => {
   const user = userStore((state) => state.user);
-  const getUser = userStore((state) => state.getUser);
+  const fetchUser = userStore((state) => state.fetchUser);
+  const loading = userStore((state) => state.loading);
 
   const router = useRouter();
 
   useEffect(() => {
     if (!user) {
-      getUser(); // fetch and store user
+      fetchUser(); // fetch and store user
     }
-    console.log("Profile user:", user);
   }, [user]);
 
-  if (!user) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-lg text-gray-500">Loading profile...</Text>
-      </View>
-    );
+  if (!user || loading) {
+    return <LoadingSpinners />;
   }
 
   return (

@@ -39,7 +39,7 @@ export const firebaseAuth = async (
     }
 
     const res = await userAuthenticate(userIdToken);
-    if (res.status === 201) {
+    if (res.status === 200) {
       return res;
     } else {
       throw new Error("Authentication failed with status: " + res.status);

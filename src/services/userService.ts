@@ -9,7 +9,7 @@ export const userAuthenticate = async (firebaseIdToken: string) => {
   }
   try {
     const res = await axios.post(
-      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/auth/verify`,
+      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/user/auth/verify`,
       { idToken: firebaseIdToken },
       {
         headers: {
@@ -21,7 +21,7 @@ export const userAuthenticate = async (firebaseIdToken: string) => {
     const jwtToken = res.data?.data?.token;
     if (jwtToken) {
       console.log("JWT stored successfully", jwtToken);
-      save("authToken", jwtToken);
+      await save("authToken", jwtToken);
     } else {
       throw new Error("No token returned from server");
     }
@@ -45,7 +45,7 @@ export const userAuthenticate = async (firebaseIdToken: string) => {
 export const userProfile = async () => {
   try {
     const res = await axios.get(
-      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/profile`,
+      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/user/profile`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -53,7 +53,8 @@ export const userProfile = async () => {
         },
       }
     );
-    return res.data;
+    console.log("User profile response:", res);
+    return res.data.data;
   } catch (error) {
     console.error("Error authenticating user:", error);
     throw error;

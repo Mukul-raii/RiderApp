@@ -4,15 +4,25 @@ import { userProfile } from "../services/userService";
 
 export const userStore = create<{
   user: UserSchema | null;
-  getUser: () => Promise<UserSchema>;
+  fetchUser: () => Promise<UserSchema>;
+  loading: boolean;
+  error: string | null;
 }>((set) => ({
   user: null,
-  getUser: async () => {
-    const res = await userProfile(); // API response
-    console.log("Fetched user profile:", res);
-    const user: UserSchema = res.data; // ✅ unwrap profile
-    set({ user });
-    return user; // <— now you can use it in component
+  loading: false,
+  error: null,
+  fetchUser: async () => {
+    set({ loading: true, error: null });
+    try {
+      const result = await userProfile();
+      console.log("Fetched user profile:", result);
+      set({ user: result, loading: false });
+      return result;
+    } catch (err: any) {
+      console.error("❌ Failed to fetch user profile:", err);
+      set({ error: "Failed to fetch user", loading: false });
+      return null;
+    }
   },
 }));
 

@@ -12,24 +12,38 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { LoadingApp } from "../components/loadingScreens";
 
 export default function Index() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { type, setType } = userAuth();
+  const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = await getValueFor("authToken");
-      if (token) {
-        router.replace("/(main)/(home)"); // replace avoids going back to login
+      try {
+        const token = await getValueFor("authToken");
+
+        console.log("Auth token:", token);
+        if (token) {
+          router.replace("/(main)/(home)");
+        }
+      } finally {
+        console.log("Auth check complete", isChecking);
+        // ✅ Always stop checking after attempt
+        setIsChecking(false);
       }
     };
-
     checkAuth();
-  }, []); // run only once on mount
+  }, []);
+
+  // prevent rendering stack until auth check is done
+  if (isChecking || loading) {
+    return <LoadingApp />;
+  }
 
   const authenticate = async () => {
     try {
@@ -45,13 +59,6 @@ export default function Index() {
       setLoading(false);
     }
   };
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center bg-white">
-        <Text className="text-lg">Loading...</Text>
-      </View>
-    );
-  }
 
   return (
     <KeyboardAvoidingView

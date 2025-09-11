@@ -1,42 +1,46 @@
 import axios from "axios";
 import { getValueFor } from "./userService";
 
-export const find_ride = async ({
-  from,
-  to,
-  pickUpLat,
-  pickUpLong,
-  dropLat,
-  dropLong,
-}: {
-  from: string;
-  to: string;
-  pickUpLat?: string;
-  pickUpLong?: string;
-  dropLat?: string;
-  dropLong?: string;
-}) => {
-  try {
-    console.log(
-      "Finding ride from",
-      from,
-      "to",
-      to,
-      await getValueFor("authToken")
-    );
-    const res = await axios.post(
-      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/find-ride`,
-      { from, to, pickUpLat, pickUpLong, dropLat, dropLong },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${await getValueFor("authToken")}`,
-        },
-      }
-    );
-    return res.data;
-  } catch (error) {
-    console.error("Error authenticating user:", error);
-    throw error;
+export class RideService {
+  async findRide(
+    from: string,
+    to: string,
+    pickUpLat?: string,
+    pickUpLong?: string,
+    dropLat?: string,
+    dropLong?: string
+  ) {
+    try {
+      const res = await axios.post(
+        `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/ride/find-ride`,
+        { from, to, pickUpLat, pickUpLong, dropLat, dropLong },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${await getValueFor("authToken")}`,
+          },
+        }
+      );
+      return res.data.data;
+    } catch (error) {
+      console.error("Error authenticating user:", error);
+    }
   }
-};
+
+  async getLiveRide(rideId: number) {
+    try {
+      const res = await axios.get(
+        `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/ride/live-rides/${rideId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${await getValueFor("authToken")}`,
+          },
+        }
+      );
+      return res.data.data;
+    } catch (error) {
+      console.error("Error fetching live ride:", error);
+    }
+  }
+}
