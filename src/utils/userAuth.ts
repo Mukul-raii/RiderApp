@@ -50,8 +50,8 @@ export const firebaseAuth = async (
   }
 };
 
-/* onIdTokenChanged(auth, async (user) => {
-  if (user && !authTokenUpdated) {
+onIdTokenChanged(auth, async (user) => {
+  if (user) {
     console.log(
       "User ID token changed. Updating stored token.",
       await auth.currentUser?.getIdToken()
@@ -68,4 +68,3 @@ export const firebaseAuth = async (
     await deleteValueFor("authToken");
   }
 });
- */

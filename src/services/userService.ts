@@ -9,7 +9,7 @@ export const userAuthenticate = async (firebaseIdToken: string) => {
   }
   try {
     const res = await axios.post(
-      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/rider/auth`,
+      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/auth/verify`,
       { idToken: firebaseIdToken },
       {
         headers: {
@@ -45,7 +45,7 @@ export const userAuthenticate = async (firebaseIdToken: string) => {
 export const userProfile = async () => {
   try {
     const res = await axios.get(
-      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/rider/profile`,
+      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/profile`,
       {
         headers: {
           "Content-Type": "application/json",

@@ -25,7 +25,7 @@ export const find_ride = async ({
       await getValueFor("authToken")
     );
     const res = await axios.post(
-      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/ride/find-ride`,
+      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/find-ride`,
       { from, to, pickUpLat, pickUpLong, dropLat, dropLong },
       {
         headers: {
