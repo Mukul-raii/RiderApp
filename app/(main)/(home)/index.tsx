@@ -53,12 +53,34 @@ const Page = () => {
         </View>
       )}
       {rideData && (
-        <View className="flex-1 justify-start items-start bg-white px-6 py-10 ">
-          <Text className="mt-6 text-lg font-semibold">Ride Details:</Text>
-          <Text className="mt-2 text-gray-700">Ride ID: {rideData.id}</Text>
-          <Text className="mt-2 text-gray-700">From: {rideData.from}</Text>
-          <Text className="mt-2 text-gray-700">To: {rideData.to}</Text>
-          <Text className="mt-2 text-gray-700">Status: {rideData.status}</Text>
+        <View className="flex-1 bg-white px-6 py-10">
+          <View className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-5 shadow-sm">
+            <Text className="text-xl font-bold text-gray-900 mb-4">
+              🚖 Ride Details
+            </Text>
+
+            <View className="space-y-2">
+              <Text className="text-gray-700">
+                <Text className="font-semibold">Ride ID:</Text> {rideData.id}
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-semibold">From:</Text>{" "}
+                {rideData.fromLocation}
+              </Text>
+              <Text className="text-gray-700">
+                <Text className="font-semibold">To:</Text> {rideData.toLocation}
+              </Text>
+              <Text
+                className={`font-semibold ${
+                  rideData.status === "ASSIGNED"
+                    ? "text-green-600"
+                    : "text-yellow-600"
+                }`}
+              >
+                Status: {rideData.status}
+              </Text>
+            </View>
+          </View>
         </View>
       )}
     </View>

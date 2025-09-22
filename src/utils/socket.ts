@@ -6,7 +6,7 @@ const socket = io("http://localhost:3000", {
 }); // connect
 
 socket.on("connect", () => {
-  console.log("Connected:", socket.id);
+  console.log("Socket Connected:", socket.id);
 });
 
 export const joinRiderRoom = (riderId: string) => {

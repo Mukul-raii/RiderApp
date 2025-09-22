@@ -40,6 +40,7 @@ export const getRide = create<{
       listenRideEvents();
 
       set({ loading: false });
+      2;
     } catch (error) {
       console.error("❌ Failed to start ride:", error);
       set({ error: "Failed to start ride" });
