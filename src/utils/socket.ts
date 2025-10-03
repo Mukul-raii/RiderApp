@@ -19,8 +19,18 @@ export const emitRideRequest = (rideData: object, riderId: string) => {
 };
 
 export const listenRideEvents = () => {
+  socket.off("rideUpdate"); // remove previous listener to avoid duplicates
   socket.on("rideUpdate", (data) => {
     console.log("Ride update received:", data);
-    getRide.getState().liveRide(data.id);
+
+    // Update the ride state directly
+    getRide.setState((state) => ({
+      ride: {
+        ...state.ride, // keep existing ride data
+        ...data, // merge updated fields from socket
+      },
+      loading: false,
+    }));
   });
 };
+listenRideEvents();
