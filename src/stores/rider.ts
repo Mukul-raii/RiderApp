@@ -5,18 +5,15 @@ import { userStore } from "./user";
 
 const rideService = new RideService();
 
-export const getRide = create<{
-  ride: any;
-  loading: boolean;
-  error: string | null;
-  liveRide: any;
-  startRide: (from: string, to: string) => Promise<void>;
-  getRide: () => string;
-  listenRideEvents: () => void;
-}>((set, get) => ({
-  ride: null,
+export const useRideStore = create<RideState>((set, get) => ({
+  allrides: null,
+  liveRide: null,
   loading: false,
   error: null,
+  rideForm: { from: "", to: "" },
+  setRideForm: (from: string, to: string) => {
+    set({ rideForm: { from, to } });
+  },
 
   startRide: async (from: string, to: string) => {
     set({ loading: true, error: null });
@@ -30,45 +27,53 @@ export const getRide = create<{
 
       joinRiderRoom(user.firebaseUid);
       await rideService.requestRide(ride);
+      listenRideEvents();
       // emitRideRequest(res, user.firebaseUid);
 
-      listenRideEvents();
-
-      set({ ride: ride });
+      set({ liveRide: ride });
     } catch (error) {
       console.error("❌ Failed to start ride:", error);
       set({ error: "Failed to start ride" });
     }
   },
-  getRide: () => get().startRide.toString(),
-  listenRideEvents: () => {
-    listenRideEvents();
+  getAllRides: async () => {
+    set({ loading: true, error: null });
+    try {
+      const rideData = await rideService.getRides();
+      set({ allrides: rideData, loading: false });
+    } catch (error) {
+      console.error("❌ Failed to get rides:", error);
+      set({ loading: false, error: "Failed to get rides" });
+    }
   },
-  liveRide: async () => {
+  getliveRide: async () => {
     try {
       set({ loading: true, error: null });
       const result = await rideService.getLiveRide();
-      set({ ride: result, loading: false });
+      set({ liveRide: result, loading: false });
     } catch (error) {
       console.error("❌ Failed to fetch live ride:", error);
       set({ loading: false, error: "Failed to fetch live ride" });
     }
   },
-}));
-
-export const Ride = create<{
-  rides: any[];
-  loading: boolean;
-  error: string | null;
-  fetchRides: () => Promise<void>;
-}>((set) => ({
-  rides: [],
-  loading: false,
-  error: null,
-  fetchRides: async () => {
-    const rideService = new RideService();
-    const rideData = await rideService.getRides();
-    console.log(rideData);
-    set({ rides: rideData });
+  listenRideEvents: () => {
+    listenRideEvents();
   },
 }));
+
+interface RideForm {
+  from: string;
+  to: string;
+}
+interface RideState {
+  rideForm: RideForm;
+  allrides: any;
+  liveRide: any;
+  getliveRide: () => Promise<void>;
+  setRideForm: (from: string, to: string) => void;
+  startRide: (from: string, to: string) => Promise<void>;
+  getAllRides: () => Promise<void>;
+  loading: boolean;
+  error: string | null;
+  listenRideEvents: () => void;
+}

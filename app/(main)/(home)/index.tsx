@@ -1,24 +1,25 @@
-import { searchRide } from "@/app/components/searchRide";
-import { getRide } from "@/src/stores/rider";
-import { useEffect, useState } from "react";
+import { useRideStore } from "@/src/stores/rider";
+import { useEffect } from "react";
 import {
+  ActivityIndicator,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
 import { auth } from "../../../src/utils/firebaseConfig";
 
 const Page = () => {
   const user = auth.currentUser;
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const startRide = getRide((state) => state.startRide);
-  const loading = getRide((state) => state.loading);
-  const fetchRides = getRide((state) => state.liveRide);
-  const rideData = getRide((state) => state.ride);
-  const listenRideEvents = getRide((state) => state.listenRideEvents);
+  const { from, to } = useRideStore((state) => state.rideForm);
+  const setRideForm = useRideStore((state) => state.setRideForm);
+  const startRide = useRideStore((state) => state.startRide);
+  const loading = useRideStore((state) => state.loading);
+
+  const fetchRides = useRideStore((state) => state.getliveRide);
+  const rideData = useRideStore((state) => state.liveRide);
+
+  const listenRideEvents = useRideStore((state) => state.listenRideEvents);
 
   useEffect(() => {
     fetchRides();
@@ -40,7 +41,7 @@ const Page = () => {
         className="w-full border border-gray-300 rounded-2xl px-4 py-3 mb-4 text-base"
         placeholder="Pickup location"
         value={from}
-        onChangeText={setFrom}
+        onChangeText={(text) => setRideForm(text, to)}
       />
 
       {/* To Input */}
@@ -48,7 +49,7 @@ const Page = () => {
         className="w-full border border-gray-300 rounded-2xl px-4 py-3 mb-6 text-base"
         placeholder="Drop-off location"
         value={to}
-        onChangeText={setTo}
+        onChangeText={(text) => setRideForm(from, text)}
       />
 
       {/* Start Ride Button */}

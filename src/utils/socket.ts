@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import { getRide } from "../stores/rider";
+import { useRideStore } from "../stores/rider";
 
 const socket = io("http://localhost:3000", {
   transports: ["websocket"],
@@ -24,13 +24,14 @@ export const listenRideEvents = () => {
     console.log("Ride update received:", data);
 
     // Update the ride state directly
-    getRide.setState((state) => ({
+    useRideStore.setState((state) => ({
       ride: {
-        ...state.ride, // keep existing ride data
+        ...state.liveRide, // keep existing ride data
         ...data, // merge updated fields from socket
       },
       loading: false,
     }));
   });
 };
+
 listenRideEvents();

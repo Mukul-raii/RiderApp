@@ -1,7 +1,4 @@
-import { getValueFor } from "@/src/services/userService";
-import { Stack, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, View } from "react-native";
+import { Stack } from "expo-router";
 import "./global.css";
 
 export default function RootLayout() {

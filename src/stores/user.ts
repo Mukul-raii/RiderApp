@@ -2,12 +2,7 @@ import { UserSchema } from "@/src/Types/user";
 import { create } from "zustand";
 import { userProfile } from "../services/userService";
 
-export const userStore = create<{
-  user: UserSchema | null;
-  fetchUser: () => Promise<UserSchema>;
-  loading: boolean;
-  error: string | null;
-}>((set) => ({
+export const userStore = create<UserState>((set) => ({
   user: null,
   loading: false,
   error: null,
@@ -26,12 +21,21 @@ export const userStore = create<{
   },
 }));
 
-export const userAuth = create<{
-  type: string;
-  setType: (type: string) => void;
-  getType: () => string;
-}>((set, get) => ({
+export const userAuth = create<AuthState>((set, get) => ({
   type: "login",
   setType: (type: string) => set({ type }),
   getType: () => get().type,
 }));
+
+interface UserState {
+  user: UserSchema | null;
+  fetchUser: () => Promise<UserSchema>;
+  loading: boolean;
+  error: string | null;
+}
+
+interface AuthState {
+  type: string;
+  setType: (type: string) => void;
+  getType: () => string;
+}

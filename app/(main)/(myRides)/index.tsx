@@ -1,10 +1,10 @@
-import { Ride } from "@/src/stores/rider";
+import { useRideStore } from "@/src/stores/rider";
 import { useEffect } from "react";
 import { FlatList, Text, View } from "react-native";
 
 const Page = () => {
-  const fetchRides = Ride((state) => state.fetchRides);
-  const rides = Ride((state) => state.rides);
+  const fetchRides = useRideStore((state) => state.getAllRides);
+  const rides = useRideStore((state) => state.allrides);
 
   useEffect(() => {
     fetchRides();
@@ -29,7 +29,7 @@ const Page = () => {
   return (
     <View className="flex-1 bg-gray-100 p-4">
       <Text className="text-2xl font-bold mb-4">My Rides</Text>
-      {rides.length === 0 ? (
+      {!rides || rides.length === 0 ? (
         <Text className="text-center text-gray-500 mt-6 text-base">
           No rides available
         </Text>
