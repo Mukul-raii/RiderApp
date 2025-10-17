@@ -1,9 +1,12 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
+import { apiCalls } from "../utils/apicall";
 import { auth } from "../utils/firebaseConfig";
 
-export const userAuthenticate = async (firebaseIdToken: string) => {
+export const userAuthenticate = async (
+  firebaseIdToken: string
+): Promise<AxiosResponse<any>> => {
   if (!firebaseIdToken) {
     throw new Error("No firebaseIdToken found");
   }
@@ -44,19 +47,14 @@ export const userAuthenticate = async (firebaseIdToken: string) => {
 
 export const userProfile = async () => {
   try {
-    const res = await axios.get(
-      `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/user/profile`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${await getValueFor("authToken")}`,
-        },
-      }
-    );
-    console.log("User profile response:", res);
-    return res.data.data;
+    const data = await apiCalls({
+      url: "user/profile",
+      method: "GET",
+    });
+    console.log("User profile response:", data);
+    return data;
   } catch (error) {
-    console.error("Error authenticating user:", error);
+    console.error("Error fetching user profile:", error);
     throw error;
   }
 };
