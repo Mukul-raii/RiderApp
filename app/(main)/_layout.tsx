@@ -15,6 +15,16 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
+        name="(myRides)/index"
+        options={{
+          headerShown: false,
+          title: "My Rides",
+          tabBarIcon: ({ color }) => (
+            <AntDesign name="car" size={24} color="black" />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="(profile)/index"
         options={{
           headerShown: false,

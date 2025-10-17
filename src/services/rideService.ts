@@ -27,10 +27,10 @@ export class RideService {
     }
   }
 
-  /*  async getRides() {
+  async getRides() {
     try {
       const res = await axios.get(
-        `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/ride/live-rides/${rideId}`,
+        `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/ride/user-rides`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -38,11 +38,12 @@ export class RideService {
           },
         }
       );
+      console.log("Rides fetched from service:", res.data.data);
       return res.data.data;
     } catch (error) {
       console.error("Error fetching rides:", error);
     }
-  } */
+  }
 
   async getLiveRide() {
     try {

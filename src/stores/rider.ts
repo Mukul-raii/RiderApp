@@ -55,3 +55,20 @@ export const getRide = create<{
     }
   },
 }));
+
+export const Ride = create<{
+  rides: any[];
+  loading: boolean;
+  error: string | null;
+  fetchRides: () => Promise<void>;
+}>((set) => ({
+  rides: [],
+  loading: false,
+  error: null,
+  fetchRides: async () => {
+    const rideService = new RideService();
+    const rideData = await rideService.getRides();
+    console.log(rideData);
+    set({ rides: rideData });
+  },
+}));
