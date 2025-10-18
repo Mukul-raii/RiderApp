@@ -1,18 +1,11 @@
 import { apiCalls } from "../utils/apicall";
 
 export class RideService {
-  async findRide(
-    from: string,
-    to: string,
-    pickUpLat?: string,
-    pickUpLong?: string,
-    dropLat?: string,
-    dropLong?: string
-  ) {
+  async findRide(params: RideRequest) {
     return await apiCalls({
       url: "ride/find-ride",
       method: "POST",
-      body: { from, to, pickUpLat, pickUpLong, dropLat, dropLong },
+      body: { ...params },
     });
   }
 
@@ -35,8 +28,16 @@ export class RideService {
   async requestRide(rideData: object) {
     return await apiCalls({
       url: "ride/request-ride",
-      method: "PUT",
+      method: "PATCH",
       body: { rideData },
     });
   }
+}
+interface RideRequest {
+  from_address: string;
+  to_address: string;
+  from_lat: number;
+  from_lng: number;
+  to_lat: number;
+  to_lng: number;
 }

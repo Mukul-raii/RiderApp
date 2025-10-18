@@ -1,18 +1,20 @@
 import { getValueFor } from "@/src/services/userService";
-import { userAuth } from "@/src/stores/user";
+import { userAuth, userStore } from "@/src/stores/user";
 import { firebaseAuth } from "@/src/utils/userAuth";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { navigate } from "expo-router/build/global-state/routing";
 import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { LoadingApp } from "../components/loadingScreens";
+import { initSocket } from "@/src/utils/socket";
 
 export default function Index() {
   const [email, setEmail] = useState("");
@@ -21,6 +23,7 @@ export default function Index() {
   const { type, setType } = userAuth();
   const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
+  const { fetchUser } = userStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -50,7 +53,15 @@ export default function Index() {
       setLoading(true);
       const res = await firebaseAuth(email, password, type);
       if (res) {
-        navigate("/(main)/(home)"); // or use router.replace if you use expo-router
+        console.log("1 Auth Done ");
+        navigate("/(main)/(home)");
+        console.log("2 user fetched");
+
+        await fetchUser(); // ✅ ensure store is updated
+        console.log("3 init socket");
+
+        initSocket(); // now user.firebaseUid will exist
+        console.log("4 completed init socket");
       }
     } catch (error) {
       console.error("Authentication failed:", error);
@@ -62,82 +73,80 @@ export default function Index() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white px-6 py-20"
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      className="flex-1 bg-white"
     >
-      <View className="flex-1 justify-center">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        className="px-6 py-20 "
+        contentContainerClassName="justify-center"
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Header */}
         <View className="mb-12">
-          <Text className="text-3xl font-bold mb-2">Lets Sign You In</Text>
-          <Text className="text-lg text-gray-600">
-            Welcome back! You have been missed.
+          <Text className="text-3xl font-bold text-black mb-2">
+            Let's Sign You In
+          </Text>
+          <Text className="text-base text-gray-500">
+            Welcome back! You’ve been missed.
           </Text>
         </View>
-        <Link href={"/(main)/(home)"}>Reroute</Link>
 
         {/* Form */}
         <View className="space-y-6">
           {/* Email */}
           <View>
-            <Text className="text-lg font-semibold mb-1">Email</Text>
+            <Text className="text-gray-800 font-semibold mb-1">Email</Text>
             <TextInput
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
               placeholder="Enter your email"
-              className="border border-gray-300 rounded-lg px-4 py-3 text-base"
+              placeholderTextColor="#999"
+              className="border border-gray-300 rounded-xl px-4 py-3 text-black bg-gray-50"
             />
           </View>
 
           {/* Password */}
           <View>
-            <Text className="text-lg font-semibold mb-1">Password</Text>
+            <Text className="text-gray-800 font-semibold mb-1">Password</Text>
             <TextInput
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               placeholder="Enter your password"
-              className="border border-gray-300 rounded-lg px-4 py-3 text-base"
+              placeholderTextColor="#999"
+              className="border border-gray-300 rounded-xl px-4 py-3 text-black bg-gray-50"
             />
           </View>
 
           {/* Sign In Button */}
           <TouchableOpacity
-            onPress={() => {
-              authenticate();
-            }}
-            className="bg-purple-600 rounded-lg py-3 items-center"
+            onPress={authenticate}
+            className="bg-black rounded-xl py-3 items-center mt-2"
           >
-            <Text className="text-white text-lg font-semibold">
+            <Text className="text-white font-semibold text-lg">
               {loading ? "Signing In..." : "Sign In"}
             </Text>
           </TouchableOpacity>
 
           {/* Footer */}
-          {type === "register" ? (
-            <Text className="text-center text-gray-500 mt-4">
-              Already have an account?{" "}
-              <Text
-                className="text-purple-600"
-                onPress={() => setType("login")}
-              >
-                Login
-              </Text>
+          <Text className="text-center text-gray-500 mt-6">
+            {type === "register"
+              ? "Already have an account? "
+              : "Don't have an account? "}
+            <Text
+              className="text-black font-semibold"
+              onPress={() =>
+                setType(type === "register" ? "login" : "register")
+              }
+            >
+              {type === "register" ? "Login" : "Register"}
             </Text>
-          ) : (
-            <Text className="text-center text-gray-500 mt-4">
-              Dont have an account?{" "}
-              <Text
-                className="text-purple-600"
-                onPress={() => setType("register")}
-              >
-                Register
-              </Text>
-            </Text>
-          )}
+          </Text>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

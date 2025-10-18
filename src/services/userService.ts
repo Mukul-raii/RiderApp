@@ -3,9 +3,10 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { apiCalls } from "../utils/apicall";
 import { auth } from "../utils/firebaseConfig";
+import { initSocket } from "src/utils/socket";
 
 export const userAuthenticate = async (
-  firebaseIdToken: string
+  firebaseIdToken: string,
 ): Promise<AxiosResponse<any>> => {
   if (!firebaseIdToken) {
     throw new Error("No firebaseIdToken found");
@@ -18,7 +19,7 @@ export const userAuthenticate = async (
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     console.log("Authentication response:", res);
     const jwtToken = res.data?.data?.token;
