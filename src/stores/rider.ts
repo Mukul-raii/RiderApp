@@ -10,20 +10,52 @@ export const useRideStore = create<RideState>((set, get) => ({
   liveRide: null,
   loading: false,
   error: null,
-  rideForm: { from: "", to: "" },
-  setRideForm: (from: string, to: string) => {
-    set({ rideForm: { from, to } });
+  rideForm: {
+    from_lat: 0,
+    from_lng: 0,
+    from_address: "",
+    to_lat: 0,
+    to_lng: 0,
+    to_address: "",
+  },
+  setRideForm: (
+    from_lat: number,
+    from_lng: number,
+    from_address: string,
+    to_lat: number,
+    to_lng: number,
+    to_address: string
+  ) => {
+    set({
+      rideForm: {
+        from_lat,
+        from_lng,
+        from_address,
+        to_lat,
+        to_lng,
+        to_address,
+      },
+    });
   },
 
-  startRide: async (from: string, to: string) => {
+  startRide: async () => {
     set({ loading: true, error: null });
     try {
       let user = userStore.getState().user;
       if (!user) {
         user = await userStore.getState().fetchUser();
       }
+      const { from_lat, from_lng, from_address, to_lat, to_lng, to_address } =
+        useRideStore.getState().rideForm;
 
-      const ride = await rideService.findRide(from, to);
+      const ride = await rideService.findRide({
+        from_lat,
+        from_lng,
+        from_address,
+        to_lat,
+        to_lng,
+        to_address,
+      });
 
       joinRiderRoom(user.firebaseUid);
       await rideService.requestRide(ride);
@@ -62,16 +94,28 @@ export const useRideStore = create<RideState>((set, get) => ({
 }));
 
 interface RideForm {
-  from: string;
-  to: string;
+  from_lat: number;
+  from_lng: number;
+  from_address: string;
+  to_lat: number;
+  to_lng: number;
+  to_address: string;
 }
+
 interface RideState {
   rideForm: RideForm;
   allrides: any;
   liveRide: any;
   getliveRide: () => Promise<void>;
-  setRideForm: (from: string, to: string) => void;
-  startRide: (from: string, to: string) => Promise<void>;
+  setRideForm: (
+    from_lat: number,
+    from_lng: number,
+    from_address: string,
+    to_lat: number,
+    to_lng: number,
+    to_address: string
+  ) => void;
+  startRide: () => Promise<void>;
   getAllRides: () => Promise<void>;
   loading: boolean;
   error: string | null;
