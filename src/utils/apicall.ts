@@ -7,6 +7,7 @@ export const apiCalls = async <T = any>(params: ApiCalls): Promise<T> => {
       url: `${process.env.EXPO_PUBLIC_RIDER_BACKEND_URL}/${params.url}`,
       method: params.method,
       data: params.body,
+      params: params.params,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${await getValueFor("authToken")}`,
@@ -17,7 +18,7 @@ export const apiCalls = async <T = any>(params: ApiCalls): Promise<T> => {
     const axiosError = error as AxiosError;
     console.error(
       `API Error [${params.method} ${params.url}]:`,
-      axiosError.message
+      axiosError.message,
     );
     throw error;
   }
@@ -27,4 +28,5 @@ interface ApiCalls {
   url: string;
   body?: object;
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+  params?: object;
 }
