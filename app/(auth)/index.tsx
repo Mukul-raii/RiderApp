@@ -1,5 +1,6 @@
 import { getValueFor } from "@/src/services/userService";
 import { userAuth, userStore } from "@/src/stores/user";
+import { initSocket } from "@/src/utils/socket";
 import { firebaseAuth } from "@/src/utils/userAuth";
 import { useRouter } from "expo-router";
 import { navigate } from "expo-router/build/global-state/routing";
@@ -14,7 +15,6 @@ import {
   View,
 } from "react-native";
 import { LoadingApp } from "../components/loadingScreens";
-import { initSocket } from "@/src/utils/socket";
 
 export default function Index() {
   const [email, setEmail] = useState("");
@@ -32,7 +32,7 @@ export default function Index() {
 
         console.log("Auth token:", token);
         if (token) {
-          router.replace("/(main)/(home)");
+          router.replace("/(main)/home");
         }
       } finally {
         console.log("Auth check complete", isChecking);
@@ -54,7 +54,7 @@ export default function Index() {
       const res = await firebaseAuth(email, password, type);
       if (res) {
         console.log("1 Auth Done ");
-        navigate("/(main)/(home)");
+        navigate("/(main)/home");
         console.log("2 user fetched");
 
         await fetchUser(); // ✅ ensure store is updated
