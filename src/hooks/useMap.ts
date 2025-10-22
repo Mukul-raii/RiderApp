@@ -3,6 +3,7 @@ import { create } from "zustand";
 import * as Location from "expo-location";
 import { useRideStore } from "../stores/rider";
 import axios from "axios";
+import { useCallback } from "react";
 
 export const useMap = create<MapState>((set) => ({
   currentLocation: {
@@ -12,24 +13,71 @@ export const useMap = create<MapState>((set) => ({
     longitudeDelta: 0.01,
   },
   showMap: false,
+  setShowMap: (value: boolean) => set({ showMap: value }),
   getCurrentLocation: async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
+    console.log("Permission status:", status);
     if (status !== "granted") {
       console.log("Permission to access location was denied");
       return;
     }
+    console.log("Permission granted");
+    let locationCoords = null;
+    console.log(
+      "Location.getCurrentPositionAsync-- ",
+      await Location.getCurrentPositionAsync({}),
+    );
+    // 1. First, try to get the fresh, current location
+    try {
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
 
-    let location = await Location.getCurrentPositionAsync({});
-    const { latitude, longitude } = location.coords;
-    console.log("📍 Current location:", latitude, longitude);
-    set({
-      currentLocation: {
-        lat: latitude,
-        lng: longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      },
-    });
+      if (location) {
+        locationCoords = location.coords;
+      }
+    } catch (error) {
+      console.warn(
+        "Could not get current position (e.g., timed out), falling back...",
+        error.message,
+      );
+    }
+
+    // 2. If that failed, fall back to the last known location
+    if (!locationCoords) {
+      try {
+        console.log("Using last known location as fallback.");
+        const lastKnown = await Location.getLastKnownPositionAsync({
+          requiredAccuracy: Location.Accuracy.High,
+        });
+
+        if (lastKnown) {
+          locationCoords = lastKnown.coords;
+        }
+      } catch (error) {
+        console.error("Error getting last known location:", error.message);
+      }
+    }
+
+    // 3. Set state if we found any location
+    if (locationCoords) {
+      const { latitude, longitude } = locationCoords;
+      console.log("📍 Current location:", latitude, longitude);
+      set({
+        currentLocation: {
+          lat: latitude,
+          lng: longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        },
+      });
+    } else {
+      console.error(
+        "Failed to get any location. Check device location services.",
+      );
+      // Optionally, you could alert the user here
+      // alert("Could not determine your location.");
+    }
   },
   locationAddress: "",
   getLocationAddress: async (lat: number, lng: number) => {
@@ -75,6 +123,7 @@ export const useMap = create<MapState>((set) => ({
         lon,
         address,
       );
+      useRideStore.setState({ isRideReady: true });
     }
   },
   directionCoordinate: [], // Start with an empty array
@@ -141,10 +190,24 @@ export const useMap = create<MapState>((set) => ({
       throw new Error("Failed to fetch directions from OpenRouteService.");
     }
   },
+  clearMapState: () => {
+    set({
+      directionCoordinate: [],
+      showMap: false,
+      currentLocation: {
+        lat: 0,
+        lng: 0,
+        latitudeDelta: 0,
+        longitudeDelta: 0,
+      },
+      locationAddress: "",
+    });
+  },
 }));
 
 interface MapState {
   showMap: boolean;
+  setShowMap: (value: boolean) => void;
   currentLocation: {
     lat: number;
     lng: number;
@@ -162,6 +225,7 @@ interface MapState {
   ) => void;
   directionCoordinate: LatLng[];
   getdirectionCoordinate: () => Promise<LatLng[] | void>;
+  clearMapState: () => void;
 }
 
 interface LatLng {

@@ -24,8 +24,12 @@ export const LocationPin = ({
   const { rideForm } = useRideStore((state) => state);
 
   useEffect(() => {
-    console.log("🗺 useEffect: calling getCurrentLocation()");
-    getCurrentLocation();
+    try {
+      console.log("🗺 useEffect: calling getCurrentLocation()");
+      getCurrentLocation();
+    } catch (error) {
+      console.error("Error getting current location:", error);
+    }
   }, []);
   const debounceRef = useRef<number | null>(null);
 

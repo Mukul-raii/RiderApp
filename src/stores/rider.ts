@@ -18,13 +18,14 @@ export const useRideStore = create<RideState>((set, get) => ({
     to_lng: 0,
     to_address: "",
   },
+  isRideReady: false,
   setRideForm: (
     from_lat: number,
     from_lng: number,
     from_address: string,
     to_lat: number,
     to_lng: number,
-    to_address: string
+    to_address: string,
   ) => {
     set({
       rideForm: {
@@ -91,6 +92,29 @@ export const useRideStore = create<RideState>((set, get) => ({
   listenRideEvents: () => {
     listenRideEvents();
   },
+  rideDetails: {
+    estimatedTime: 0,
+    estimatedDistance: 0,
+    estimatedfare: 0,
+  },
+  clearRide: () => {
+    set({
+      rideForm: {
+        from_lat: 0,
+        from_lng: 0,
+        from_address: "",
+        to_lat: 0,
+        to_lng: 0,
+        to_address: "",
+      },
+      isRideReady: false,
+      rideDetails: {
+        estimatedTime: 0,
+        estimatedDistance: 0,
+        estimatedfare: 0,
+      },
+    });
+  },
 }));
 
 interface RideForm {
@@ -113,11 +137,20 @@ interface RideState {
     from_address: string,
     to_lat: number,
     to_lng: number,
-    to_address: string
+    to_address: string,
   ) => void;
   startRide: () => Promise<void>;
   getAllRides: () => Promise<void>;
   loading: boolean;
   error: string | null;
   listenRideEvents: () => void;
+  isRideReady: boolean;
+  rideDetails: rideDetails;
+  clearRide: () => void;
+}
+
+export interface rideDetails {
+  estimatedTime: number;
+  estimatedDistance: number;
+  estimatedfare: number;
 }

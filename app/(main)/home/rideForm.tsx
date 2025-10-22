@@ -1,5 +1,8 @@
 import { LocationPin } from "@/app/components/locationPin";
-import { useRideStore } from "@/src/stores/rider";
+import { useMap } from "@/src/hooks/useMap";
+import { rideDetails, useRideStore } from "@/src/stores/rider";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -8,26 +11,49 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { auth } from "../../../../src/utils/firebaseConfig";
-import { Ionicons } from "@expo/vector-icons";
+import { auth } from "../../../src/utils/firebaseConfig";
+import { RideService } from "@/src/services/rideService";
 
 const Page = () => {
   const user = auth.currentUser;
   const { from_address, to_address } = useRideStore((state) => state.rideForm);
   const setRideForm = useRideStore((state) => state.setRideForm);
   const startRide = useRideStore((state) => state.startRide);
+  const rideFormData = useRideStore((state) => state.rideForm);
+
   const loading = useRideStore((state) => state.loading);
 
   const fetchRides = useRideStore((state) => state.getliveRide);
   const rideData = useRideStore((state) => state.liveRide);
 
   const listenRideEvents = useRideStore((state) => state.listenRideEvents);
-  const [showMap, setShowMap] = useState(false);
+  const { showMap, setShowMap } = useMap((state) => state);
   const [mapType, setMapType] = useState<"pickup" | "dropoff">("pickup");
-
+  const isRideReady = useRideStore((state) => state.isRideReady);
+  const rideService = new RideService();
   useEffect(() => {
     fetchRides();
   }, []);
+
+  useEffect(() => {
+    if (isRideReady) {
+      console.log("isRideReady changed:", isRideReady);
+
+      const fetch = async () => {
+        const res = await rideService.getDistance(rideFormData);
+        useRideStore.setState({
+          rideDetails: {
+            estimatedDistance: res.distance,
+            estimatedTime: res.duration,
+            estimatedfare: res.estimatedprices,
+          },
+        });
+        console.log("rideDetails:", res);
+      };
+      fetch();
+      router.push("/home/ridePrepared");
+    }
+  }, [isRideReady]);
 
   const onSubmit = async () => {
     const res = await startRide();
@@ -40,7 +66,12 @@ const Page = () => {
     <View className="flex-1 bg-white px-5 py-6">
       {/* Back Button + Header */}
       <View className="flex-row items-center mb-8">
-        <Ionicons name="arrow-back" size={24} color="black" />
+        <Ionicons
+          name="arrow-back"
+          size={24}
+          color="black"
+          onPress={() => router.back()}
+        />
         <Text className="text-2xl font-bold ml-3">Drop</Text>
       </View>
 

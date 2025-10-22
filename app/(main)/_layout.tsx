@@ -6,7 +6,7 @@ const Layout = () => {
       screenOptions={{ tabBarActiveTintColor: "coral", headerShown: false }}
     >
       <Tabs.Screen
-        name="(home)/index"
+        name="home"
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
@@ -15,7 +15,7 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="(myRides)/index"
+        name="myRides/index"
         options={{
           headerShown: false,
           title: "My Rides",
@@ -25,7 +25,7 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="(profile)/index"
+        name="profile/index"
         options={{
           headerShown: false,
           title: "Profile",

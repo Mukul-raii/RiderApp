@@ -32,6 +32,14 @@ export class RideService {
       body: { rideData },
     });
   }
+
+  async getDistance(rideFormData: any) {
+    return await apiCalls({
+      url: "ride/ride-prepared",
+      method: "POST",
+      body: { rideFormData },
+    });
+  }
 }
 interface RideRequest {
   from_address: string;
