@@ -9,7 +9,9 @@
       "@stores/*": ["./stores/*"],
       "@types/*": ["./types/*"],
       "@utils/*": ["./utils/*"]
-    }
+    },
+    "incremental": false,
+    "skipLibCheck": true
   },
   "include": [
     "**/*.ts",

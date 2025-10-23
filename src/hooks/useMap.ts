@@ -170,7 +170,7 @@ export const useMap = create<MapState>((set) => ({
             latitude: c[1], // Index 1 is latitude
             longitude: c[0], // Index 0 is longitude
           }));
-          console.log(response.data);
+          console.log(formattedCoordinates);
           set({ directionCoordinate: formattedCoordinates });
           return formattedCoordinates;
         } else {
