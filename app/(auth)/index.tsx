@@ -3,7 +3,6 @@ import { userAuth, userStore } from "@/src/stores/user";
 import { initSocket } from "@/src/utils/socket";
 import { firebaseAuth } from "@/src/utils/userAuth";
 import { useRouter } from "expo-router";
-import { navigate } from "expo-router/build/global-state/routing";
 import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -84,7 +83,7 @@ export default function Index() {
       // Use Alert.alert for better user experience than generic alert()
       Alert.alert(
         "Authentication Failed",
-        "The credentials you entered are incorrect or the account does not exist. Please check your email and password and try again.",
+        "The credentials you entered are incorrect or the account does not exist. Please check your email and password and try again."
       );
     } finally {
       setLoading(false);
