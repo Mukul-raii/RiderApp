@@ -4,6 +4,9 @@ import * as Location from "expo-location";
 import { useRideStore } from "../stores/rider";
 import axios from "axios";
 import { useCallback } from "react";
+import { RideService } from "../services/rideService";
+
+const rideService = new RideService();
 
 export const useMap = create<MapState>((set) => ({
   currentLocation: {
@@ -65,8 +68,8 @@ export const useMap = create<MapState>((set) => ({
       console.log("📍 Current location:", latitude, longitude);
       set({
         currentLocation: {
-          lat: latitude,
-          lng: longitude,
+          lat: 28.6171191,
+          lng: 77.2080476,
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         },
@@ -203,6 +206,18 @@ export const useMap = create<MapState>((set) => ({
       locationAddress: "",
     });
   },
+  driverLocation: null,
+  getdriverLocation: async () => {
+    const driverId = useRideStore.getState().liveRide.driverId;
+    const res = await rideService.getDriverLocation(driverId);
+    console.log("driver location  ", res);
+    set({
+      driverLocation: {
+        latitude: parseFloat(res.latitude), // <-- FIX 1: Convert to number
+        longitude: parseFloat(res.longitude), // <-- FIX 2: Convert to number
+      },
+    });
+  },
 }));
 
 interface MapState {
@@ -226,6 +241,9 @@ interface MapState {
   directionCoordinate: LatLng[];
   getdirectionCoordinate: () => Promise<LatLng[] | void>;
   clearMapState: () => void;
+
+  driverLocation: LatLng | null;
+  getdriverLocation: (driverId: string) => Promise<void>;
 }
 
 interface LatLng {

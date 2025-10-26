@@ -40,6 +40,15 @@ export class RideService {
       body: { rideFormData },
     });
   }
+
+  async getDriverLocation(driverId: string) {
+    const res = await apiCalls({
+      url: `ride/driver-location/${driverId}`,
+      method: "GET",
+    });
+    console.log("driver loc", res);
+    return res;
+  }
 }
 interface RideRequest {
   from_address: string;

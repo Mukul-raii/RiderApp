@@ -70,7 +70,7 @@ const Page = () => {
           name="arrow-back"
           size={24}
           color="black"
-          onPress={() => router.back()}
+          onPress={() => router.navigate("/(main)/home")}
         />
         <Text className="text-2xl font-bold ml-3">Drop</Text>
       </View>

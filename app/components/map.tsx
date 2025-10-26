@@ -2,6 +2,9 @@ import { useMap } from "@/src/hooks/useMap";
 import { useRideStore } from "@/src/stores/rider";
 import { useEffect, useRef } from "react";
 import MapView, { Marker, Polyline, UrlTile } from "react-native-maps";
+import { Map } from "./mapview";
+import { View } from "react-native";
+import { Text } from "@react-navigation/elements";
 
 export const MapLocation = () => {
   const {
@@ -24,54 +27,28 @@ export const MapLocation = () => {
     { latitude: rideForm.from_lat, longitude: rideForm.from_lng },
     { latitude: rideForm.to_lat, longitude: rideForm.to_lng },
   ];
+  const isLoading = currentLocation.lat === 0 && currentLocation.lng === 0;
 
   return (
-    <MapView
-      style={{ flex: 1 }}
-      region={{
-        latitude: currentLocation.lat,
-        longitude: currentLocation.lng,
-        latitudeDelta: currentLocation.latitudeDelta,
-        longitudeDelta: currentLocation.longitudeDelta,
-      }}
-      onRegionChangeComplete={(region) => {
-        useMap.setState({
-          currentLocation: {
-            lat: region.latitude,
-            lng: region.longitude,
-            latitudeDelta: region.latitudeDelta,
-            longitudeDelta: region.longitudeDelta,
-          },
-        });
-
-        if (currentLocation.lat !== 0 && currentLocation.lng !== 0) {
-          if (debounceRef.current) clearTimeout(debounceRef.current);
-          debounceRef.current = setTimeout(() => {
-            getLocationAddress(region.latitude, region.longitude);
-            getdirectionCoordinate();
-          }, 500);
-        }
-      }}
-    >
-      {rideForm.from_lat !== 0 && (
-        <Marker coordinate={routeCoords[0]} title="Pickup" />
-      )}
-      {rideForm.to_lat !== 0 && (
-        <Marker coordinate={routeCoords[1]} title="Dropoff" />
-      )}
-
-      <UrlTile
-        urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maximumZ={19}
-      />
-
-      {directionCoordinate.length >= 2 && (
-        <Polyline
-          coordinates={directionCoordinate}
-          strokeColor="blue"
-          strokeWidth={4}
+    <>
+      {isLoading ? (
+        <View className="bg-red-500">
+          <Text>Loading... </Text>
+        </View>
+      ) : (
+        <Map
+          currentLocation={currentLocation}
+          currLoc={{ lat: rideForm.from_lat, lng: rideForm.from_lng }}
+          dropLoc={{ lat: rideForm.to_lat, lng: rideForm.to_lng }}
+          directionCoordinate={directionCoordinate}
+          mode="route"
+          // Since this component is NOT the screen where the user selects a location,
+          // the onRegionChangeComplete logic is now handled internally by the Map component
+          // for generic map movement/updates (if desired), or you can remove that logic
+          // from Map.tsx if it's only meant for LocationPin. I left it in Map.tsx
+          // for maximum reusability.
         />
       )}
-    </MapView>
+    </>
   );
 };

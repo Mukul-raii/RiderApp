@@ -3,14 +3,14 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // Your Firebase config object extracted from google-services.json
-const firebaseConfig = {
-  apiKey: "AIzaSyCyiVGZJvrGJubP7L4UErvp4tFykPhPCmM",
-  authDomain: "rider-9b757.firebaseapp.com",
-  projectId: "rider-9b757",
-  storageBucket: "rider-9b757.firebasestorage.app",
-  messagingSenderId: "519511846544",
-  appId: "1:519511846544:web:4f7a89bea7d05ad8e0b215",
-  measurementId: "G-S1PMHZW0ZF",
+export const firebaseConfig = {
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase only if it hasn't been initialized already

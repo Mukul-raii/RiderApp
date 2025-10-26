@@ -13,18 +13,25 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert, // Imported for better error handling
+  ActivityIndicator, // Imported for inline loading
 } from "react-native";
 import { LoadingApp } from "../components/loadingScreens";
+import { Ionicons } from "@expo/vector-icons"; // Imported for password visibility toggle
 
 export default function Index() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  // New state for password visibility
+  const [showPassword, setShowPassword] = useState(false);
+
   const { type, setType } = userAuth();
   const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
   const { fetchUser } = userStore();
 
+  // --- Initial Auth Check (Keep original logic) ---
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -47,29 +54,44 @@ export default function Index() {
   if (isChecking || loading) {
     return <LoadingApp />;
   }
+  // ------------------------------------------------
 
   const authenticate = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter both email and password.");
+      return;
+    }
+
     try {
       setLoading(true);
       const res = await firebaseAuth(email, password, type);
+
       if (res) {
         console.log("1 Auth Done ");
-        navigate("/(main)/home");
-        console.log("2 user fetched");
 
         await fetchUser(); // ✅ ensure store is updated
-        console.log("3 init socket");
+        console.log("2 user fetched");
 
         initSocket(); // now user.firebaseUid will exist
-        console.log("4 completed init socket");
+        console.log("3 init socket");
+
+        // Use router.replace to prevent going back to the login screen
+        router.replace("/(main)/home");
+        console.log("4 routing to home");
       }
     } catch (error) {
       console.error("Authentication failed:", error);
-      alert("Login failed. Please try again.");
+      // Use Alert.alert for better user experience than generic alert()
+      Alert.alert(
+        "Authentication Failed",
+        "The credentials you entered are incorrect or the account does not exist. Please check your email and password and try again.",
+      );
     } finally {
       setLoading(false);
     }
   };
+
+  const isLogin = type === "login";
 
   return (
     <KeyboardAvoidingView
@@ -78,25 +100,29 @@ export default function Index() {
     >
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
-        className="px-6 py-20 "
+        className="px-6 py-12"
         contentContainerClassName="justify-center"
         keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
-        <View className="mb-12">
-          <Text className="text-3xl font-bold text-black mb-2">
-            Let's Sign You In
+        <View className="mb-10 mt-8">
+          <Text className="text-4xl font-extrabold text-gray-900 mb-2">
+            Let's {isLogin ? "Sign You In" : "Get Started"}
           </Text>
           <Text className="text-base text-gray-500">
-            Welcome back! You’ve been missed.
+            {isLogin
+              ? "Welcome back! You’ve been missed."
+              : "Create an account to join the community."}
           </Text>
         </View>
 
         {/* Form */}
-        <View className="space-y-6">
-          {/* Email */}
+        <View className="space-y-5">
+          {/* Email Input */}
           <View>
-            <Text className="text-gray-800 font-semibold mb-1">Email</Text>
+            <Text className="text-base font-semibold text-gray-700 mb-2">
+              Email
+            </Text>
             <TextInput
               value={email}
               onChangeText={setEmail}
@@ -104,47 +130,68 @@ export default function Index() {
               autoCapitalize="none"
               placeholder="Enter your email"
               placeholderTextColor="#999"
-              className="border border-gray-300 rounded-xl px-4 py-3 text-black bg-gray-50"
+              className="rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-base text-black shadow-sm"
             />
           </View>
 
-          {/* Password */}
+          {/* Password Input with Toggle */}
           <View>
-            <Text className="text-gray-800 font-semibold mb-1">Password</Text>
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholder="Enter your password"
-              placeholderTextColor="#999"
-              className="border border-gray-300 rounded-xl px-4 py-3 text-black bg-gray-50"
-            />
+            <Text className="text-base font-semibold text-gray-700 mb-2">
+              Password
+            </Text>
+            <View className="flex-row items-center rounded-xl border border-gray-300 bg-gray-50 px-4 shadow-sm">
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                placeholder="Enter your password"
+                placeholderTextColor="#999"
+                className="flex-1 py-3 text-base text-black"
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword((prev) => !prev)}
+                activeOpacity={0.7}
+                className="p-1"
+              >
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={24}
+                  color="#555"
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Sign In Button */}
+          {/* Sign In/Register Button */}
           <TouchableOpacity
             onPress={authenticate}
-            className="bg-black rounded-xl py-3 items-center mt-2"
+            className="bg-blue-600 rounded-xl py-4 items-center mt-6 shadow-lg shadow-blue-200"
+            activeOpacity={0.8}
+            disabled={loading}
           >
-            <Text className="text-white font-semibold text-lg">
-              {loading ? "Signing In..." : "Sign In"}
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="#ffffff" size="small" />
+            ) : (
+              <Text className="text-white font-bold text-lg">
+                {isLogin ? "Sign In" : "Register"}
+              </Text>
+            )}
           </TouchableOpacity>
 
-          {/* Footer */}
-          <Text className="text-center text-gray-500 mt-6">
-            {type === "register"
-              ? "Already have an account? "
-              : "Don't have an account? "}
-            <Text
-              className="text-black font-semibold"
-              onPress={() =>
-                setType(type === "register" ? "login" : "register")
-              }
-            >
-              {type === "register" ? "Login" : "Register"}
+          {/* Footer - Toggle Auth Type */}
+          <TouchableOpacity
+            onPress={() => setType(isLogin ? "register" : "login")}
+            className="items-center pt-4"
+          >
+            <Text className="text-base text-gray-500">
+              {isLogin
+                ? "Don't have an account? "
+                : "Already have an account? "}
+              <Text className="text-blue-600 font-bold">
+                {isLogin ? "Register" : "Login"}
+              </Text>
             </Text>
-          </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

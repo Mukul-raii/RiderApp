@@ -3,6 +3,7 @@ import { useRideStore } from "@/src/stores/rider";
 import { useEffect, useRef } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import MapView, { Marker, Polyline, UrlTile } from "react-native-maps";
+import { Map } from "./mapview";
 
 export const LocationPin = ({
   type,
@@ -37,56 +38,29 @@ export const LocationPin = ({
     { latitude: rideForm.from_lat, longitude: rideForm.from_lng },
     { latitude: rideForm.to_lat, longitude: rideForm.to_lng }, // Delhi (example destination)
   ];
+  console.log({ routeCoords });
+
+  const pickupMarker =
+    type === "pickup" && rideForm.from_lat !== 0
+      ? { lat: rideForm.from_lat, lng: rideForm.from_lng }
+      : { lat: 0, lng: 0 }; // Pass a clear zero/empty coordinate
+
+  const dropoffMarker =
+    type === "dropoff" && rideForm.to_lat !== 0
+      ? { lat: rideForm.to_lat, lng: rideForm.to_lng }
+      : { lat: 0, lng: 0 }; // Pass a clear zero/empty coordinate
+
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Map */}
-      <MapView
-        style={{ flex: 1 }}
-        region={{
-          latitude: currentLocation.lat,
-          longitude: currentLocation.lng,
-          latitudeDelta: currentLocation.latitudeDelta,
-          longitudeDelta: currentLocation.longitudeDelta,
-        }}
-        onRegionChangeComplete={(region) => {
-          useMap.setState({
-            currentLocation: {
-              lat: region.latitude,
-              lng: region.longitude,
-              latitudeDelta: region.latitudeDelta,
-              longitudeDelta: region.longitudeDelta,
-            },
-          });
-          if (currentLocation.lat !== 0 && currentLocation.lng !== 0) {
-            if (debounceRef.current) clearTimeout(debounceRef.current);
-            debounceRef.current = setTimeout(() => {
-              getLocationAddress(region.latitude, region.longitude);
-              getdirectionCoordinate();
-            }, 500);
-          }
-        }}
-      >
-        {rideForm.from_lat !== 0 && (
-          <Marker coordinate={routeCoords[0]} title="You" />
-        )}
-        {/* Destination marker */}
-        {rideForm.to_lat !== 0 && (
-          <Marker coordinate={routeCoords[1]} title="Destination" />
-        )}
-        <UrlTile
-          urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maximumZ={19}
-        />
-
-        {directionCoordinate.length >= 2 && (
-          <Polyline
-            coordinates={directionCoordinate}
-            strokeColor="blue"
-            strokeWidth={4}
-          />
-        )}
-      </MapView>
-
+      <Map
+        currentLocation={currentLocation}
+        // Pass the EXISTING rideForm locations to allow markers to show if set
+        currLoc={pickupMarker}
+        dropLoc={dropoffMarker}
+        directionCoordinate={directionCoordinate}
+        mode="select"
+      />
       {/* Center Pin */}
       <View
         style={{
