@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import { useRideStore } from "../stores/rider";
+import { useRideStore } from "../stores/useRiderStore";
 import { userStore } from "../stores/user";
 
 const socket = io("http://192.168.29.35:3000", {
