@@ -1,9 +1,8 @@
 import { create } from "zustand";
 
 import * as Location from "expo-location";
-import { useRideStore } from "../stores/rider";
+import { useRideStore } from "./useRiderStore";
 import axios from "axios";
-import { useCallback } from "react";
 import { RideService } from "../services/rideService";
 
 const rideService = new RideService();
@@ -189,8 +188,8 @@ export const useMap = create<MapState>((set) => ({
         );
       } else {
         console.error("Error getting directions:", error);
+        throw new Error("Failed to fetch directions from OpenRouteService.");
       }
-      throw new Error("Failed to fetch directions from OpenRouteService.");
     }
   },
   clearMapState: () => {
