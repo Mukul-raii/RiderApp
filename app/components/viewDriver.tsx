@@ -1,18 +1,24 @@
 import { View, StyleSheet } from "react-native";
 import { Map } from "./mapview";
-import { useMap } from "@/src/hooks/useMap";
-import { LoadingSpinners } from "./loadingScreens";
+import { useMap } from "@/src/stores/useMap";
 import { useEffect, useRef } from "react";
-import { useRideStore } from "@/src/stores/rider";
+import { useRideStore } from "@/src/stores/useRiderStore";
 import { Text } from "@react-navigation/elements";
+import { useBack } from "@/src/hooks/useBack";
+import { useGlobalLoader } from "@/src/stores/useGlobalLoader";
 
-export const DriverLocation = () => {
+export const DriverLocation = ({
+  setShowDriverLocation,
+}: {
+  setShowDriverLocation: (show: boolean) => void;
+}) => {
   const driverLocation = useMap((state) => state.driverLocation);
   const { driverId } = useRideStore.getState().liveRide;
   const { pickUpLat, pickUpLong } = useRideStore.getState().liveRide;
   // ✅ Get stable reference to the function
   const getdriverLocationRef = useRef(useMap.getState().getdriverLocation);
 
+  useBack(setShowDriverLocation);
   useEffect(() => {
     if (!driverId) {
       console.log("⚠️ No driver ID available");
@@ -37,10 +43,7 @@ export const DriverLocation = () => {
   }, [driverId]); // ✅ Only driverId in dependencies
 
   // Show loading while fetching location
-  if (!driverLocation) {
-    return <LoadingSpinners />;
-  }
-
+  if (!driverLocation) return null;
   // Validate location data
   const latitude = parseFloat(String(driverLocation.latitude));
   const longitude = parseFloat(String(driverLocation.longitude));

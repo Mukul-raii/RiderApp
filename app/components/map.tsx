@@ -1,10 +1,12 @@
-import { useMap } from "@/src/hooks/useMap";
-import { useRideStore } from "@/src/stores/rider";
+import { useMap } from "@/src/stores/useMap";
+import { useRideStore } from "@/src/stores/useRiderStore";
 import { useEffect, useRef } from "react";
 import MapView, { Marker, Polyline, UrlTile } from "react-native-maps";
 import { Map } from "./mapview";
 import { View } from "react-native";
 import { Text } from "@react-navigation/elements";
+import GlobalLoader from "./globalLoader";
+import { useGlobalLoader } from "@/src/stores/useGlobalLoader";
 
 export const MapLocation = () => {
   const {
@@ -18,7 +20,9 @@ export const MapLocation = () => {
   const { rideForm } = useRideStore();
 
   useEffect(() => {
+    useGlobalLoader.getState().show();
     getCurrentLocation();
+    useGlobalLoader.getState().hide();
   }, []);
 
   const debounceRef = useRef<number | null>(null);

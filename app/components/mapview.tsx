@@ -2,7 +2,7 @@
 import MapView, { Marker, Polyline, Region, UrlTile } from "react-native-maps";
 import { View, StyleSheet, Image, Text } from "react-native";
 import { useEffect, useRef } from "react";
-import { useMap } from "@/src/hooks/useMap"; // Adjust path as needed
+import { useMap } from "@/src/stores/useMap";
 
 // Define the expected props for better type safety
 interface MapProps {
@@ -87,7 +87,6 @@ export const Map = ({
         getLocationAddress(region.latitude, region.longitude);
         // Note: You might only want to call getdirectionCoordinate() if both pickup and drop-off are set
         // For simplicity, I'll keep the original logic here:
-        getdirectionCoordinate();
       }, 500);
     }
   };
@@ -117,7 +116,6 @@ export const Map = ({
         maximumZ={19}
       />
 
-      {/* ✅ FIXED: Current Location/Pickup Marker - Use currLoc directly */}
       {currLoc.lat !== 0 && currLoc.lng !== 0 && (
         <LocationMarker
           coordinate={{ latitude: currLoc.lat, longitude: currLoc.lng }}
@@ -125,8 +123,6 @@ export const Map = ({
           color="#4CAF50"
         />
       )}
-
-      {/* ✅ FIXED: Destination Marker - Use dropLoc directly */}
 
       {mode === "driverToPickup" && dropLoc.lat !== 0 && dropLoc.lng !== 0 ? (
         <Marker

@@ -1,9 +1,11 @@
-import { useMap } from "@/src/hooks/useMap";
-import { useRideStore } from "@/src/stores/rider";
 import { useEffect, useRef } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import MapView, { Marker, Polyline, UrlTile } from "react-native-maps";
 import { Map } from "./mapview";
+import { BackHandler } from "react-native";
+import { useBack } from "@/src/hooks/useBack";
+import { useMap } from "@/src/stores/useMap";
+import { useRideStore } from "@/src/stores/useRiderStore";
 
 export const LocationPin = ({
   type,
@@ -32,13 +34,14 @@ export const LocationPin = ({
       console.error("Error getting current location:", error);
     }
   }, []);
+  useBack(setShowMap);
+
   const debounceRef = useRef<number | null>(null);
 
   const routeCoords = [
     { latitude: rideForm.from_lat, longitude: rideForm.from_lng },
     { latitude: rideForm.to_lat, longitude: rideForm.to_lng }, // Delhi (example destination)
   ];
-  console.log({ routeCoords });
 
   const pickupMarker =
     type === "pickup" && rideForm.from_lat !== 0
