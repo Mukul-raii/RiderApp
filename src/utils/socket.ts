@@ -1,83 +1,63 @@
+// socket connection component
 import { io } from "socket.io-client";
+import { socketStore } from "../stores/socketStore";
 import { useRideStore } from "../stores/useRiderStore";
-import { userStore } from "../stores/user";
 
-const socket = io("http://192.168.29.35:3000", {
-  transports: ["websocket"],
-  autoConnect: false,
-}); // connect
+export class socketConnection {
+  private socket: any;
 
-export function initSocket() {
-  socket.connect();
-
-  socket.on("connect", () => {
-    console.log("✅ Rider Socket Connected:", socket.id);
-  });
-
-  socket.on("connect_error", (err) => {
-    console.error("❌ WebSocket connection error:", err);
-  });
-
-  socket.on("disconnect", (reason) => {
-    console.warn("⚠️ Socket disconnected:", reason);
-    // Optional: try reconnecting manually
-    if (reason !== "io client disconnect") {
-      setTimeout(() => socket.connect(), 2000);
-    }
-  });
-
-  // Add confirmation listener
-  socket.on("roomJoined", (data) => {
-    console.log("✅ Room joined confirmation:", data);
-  });
-  //As user is gets a value in store it should run it
-  const user = userStore.getState().user;
-  if (user?.firebaseUid) {
-    joinRiderRoom(user.firebaseUid);
-
-    // 🟢 Start listening *after* joining room
-    setTimeout(() => {
-      console.log("🔄 Joining done, starting listeners...");
-      listenRideEvents();
-    }, 200); // small delay ensures server processed the join
+  constructor() {
+    this.socket = io(process.env.EXPO_PUBLIC_WEBSOCKET_API, {
+      transports: ["websocket"],
+      autoConnect: false,
+    });
   }
+
+  public initSocket() {
+    //Connect to socket server
+    this.socket.connect();
+
+    this.socket.on("connect", () => {
+      console.log("✅ Rider Socket Connected:", this.socket.id);
+    });
+
+    this.socket.on("connect_error", (err) => {
+      //console error
+      // retry connection after 2 seconds
+      console.error("❌ WebSocket connection error:", err);
+      setTimeout(() => this.socket.connect(), 2000);
+    });
+    this.socket.on("disconnect", () => {
+      console.warn("⚠️ Socket disconnected:", this.socket.id);
+      setTimeout(() => this.socket.connect(), 2000);
+    });
+
+    //wee need to join rooom
+
+    this.socket.on("roomJoined", (data: any) => {
+      console.log("✅ Room joined succesfully:", data);
+    });
+
+    this.listenEvents();
+  }
+
+  private listenEvents() {
+    this.SOCKET_EVENTS.forEach((event) => {
+      this.socket.off(event); // prevent duplicates
+      this.socket.on(event, (data) => {
+        console.log(`✅ Event received: ${event}`);
+        socketStore.getState().eventReceived(event, data);
+      });
+    });
+  }
+
+  private SOCKET_EVENTS = ["rideAccepted,rideRequested,ride_completed"];
+
+  public joinRoom = (riderId: string) => {
+    this.socket.emit("joinRiderRoom", riderId);
+    console.log(`🧑 Rider ${riderId} joined room rider:${riderId}`);
+  };
+  public emitRequest = (request: string, data: any) => {
+    this.socket.emit(request, data);
+  };
 }
-
-export const listenRideEvents = () => {
-  console.log("🚨 Setting up ride event listeners");
-
-  // Remove old listeners to prevent duplicates
-  socket.off("rideUpdate");
-  socket.off("rideAccepted");
-
-  socket.on("rideRequested", (data) => {
-    console.log("✅ Ride update received:", data);
-    useRideStore.setState((state) => ({
-      liveRide: {
-        ...state.liveRide,
-        ...data,
-      },
-      loading: false,
-    }));
-  });
-
-  socket.on("rideAccepted", (data) => {
-    console.log("✅ Ride Accepted by driver:", data);
-    useRideStore.setState((state) => ({
-      liveRide: {
-        ...state.liveRide,
-        ...data,
-      },
-      loading: false,
-    }));
-  });
-};
-
-export const joinRiderRoom = (riderId: string) => {
-  console.log("🚀 [Frontend] Joining rider room with ID:", riderId);
-  socket.emit("joinRiderRoom", riderId);
-};
-
-export const emitRideRequest = (rideData: object, riderId: string) => {
-  socket.emit("rideRequest", { ...rideData, riderId });
-};

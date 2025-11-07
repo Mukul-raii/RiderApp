@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { RideService } from "../services/rideService";
 import { joinRiderRoom } from "../utils/socket";
 import { userStore } from "./user";
+import { socketConnection } from "../utils/socket";
 
 const rideService = new RideService();
 
@@ -42,6 +43,7 @@ export const useRideStore = create<RideState>((set, get) => ({
   startRide: async () => {
     set({ loading: true, error: null });
     try {
+      const socket = new socketConnection();
       let user = userStore.getState().user;
       if (!user) {
         user = await userStore.getState().fetchUser();
@@ -57,8 +59,7 @@ export const useRideStore = create<RideState>((set, get) => ({
         to_lng,
         to_address,
       });
-
-      joinRiderRoom(user.firebaseUid);
+      socket.joinRoom(ride.id);
       await rideService.requestRide(ride);
       set({ liveRide: ride });
     } catch (error) {

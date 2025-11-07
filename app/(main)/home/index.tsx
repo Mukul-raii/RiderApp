@@ -177,34 +177,54 @@ const Page = () => {
               </View>
 
               {liveRide.status === "IN_PROGRESS" && (
-                <TouchableOpacity
-                  onPress={() => setShowDriverLocation(true)}
-                  style={{
-                    backgroundColor: "#ffffff",
-                    paddingVertical: 14,
-                    paddingHorizontal: 24,
-                    borderRadius: 16,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Feather
-                    name="navigation"
-                    size={18}
-                    color="#fca311"
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text
+                <View>
+                  <View style={{ marginBottom: 12 }}>
+                    <Text
+                      style={{
+                        color: "#111827",
+                        fontSize: 16,
+                        fontWeight: "800",
+                        letterSpacing: 2,
+                        backgroundColor: "rgba(255,255,255,0.9)",
+                        paddingVertical: 8,
+                        paddingHorizontal: 12,
+                        borderRadius: 12,
+                        alignSelf: "flex-start",
+                      }}
+                    >
+                      OTP: {String(liveRide.otp)}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => setShowDriverLocation(true)}
                     style={{
-                      color: "#fca311",
-                      fontSize: 15,
-                      fontWeight: "700",
+                      backgroundColor: "#ffffff",
+                      paddingVertical: 14,
+                      paddingHorizontal: 24,
+                      borderRadius: 16,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    Track Driver
-                  </Text>
-                </TouchableOpacity>
+                    <Feather
+                      name="navigation"
+                      size={18}
+                      color="#fca311"
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text
+                      style={{
+                        color: "#fca311",
+                        fontSize: 15,
+                        fontWeight: "700",
+                      }}
+                    >
+                      Track Driver
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
             </LinearGradient>
           </View>
