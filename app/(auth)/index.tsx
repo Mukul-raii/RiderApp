@@ -1,5 +1,5 @@
 import { getValueFor } from "@/src/services/userService";
-import { userAuth, userStore } from "@/src/stores/user";
+import { userStore } from "@/src/stores/user";
 import { initSocket } from "@/src/utils/socket";
 import { firebaseAuth } from "@/src/utils/userAuth";
 import { useRouter } from "expo-router";
@@ -12,183 +12,257 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Alert, // Imported for better error handling
-  ActivityIndicator, // Imported for inline loading
+  Alert,
+  ActivityIndicator,
 } from "react-native";
-import { LoadingApp } from "../components/loadingScreens";
-import { Ionicons } from "@expo/vector-icons"; // Imported for password visibility toggle
+import LoadingScreen from "../components/loadingScreens";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "@/src/stores/useAuthStore";
+import { useAuth } from "@/src/hooks/useAuth";
 
 export default function Index() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  // New state for password visibility
-  const [showPassword, setShowPassword] = useState(false);
-
-  const { type, setType } = userAuth();
+  const {
+    loginForm,
+    setLoginForm,
+    isLoading,
+    setLoading,
+    type,
+    setType,
+    authenticate,
+  } = useAuthStore();
+  const { email, password, showPassword } = loginForm;
   const [isChecking, setIsChecking] = useState(true);
-  const router = useRouter();
-  const { fetchUser } = userStore();
-
-  // --- Initial Auth Check (Keep original logic) ---
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = await getValueFor("authToken");
-
-        console.log("Auth token:", token);
-        if (token) {
-          router.replace("/(main)/home");
-        }
-      } finally {
-        console.log("Auth check complete", isChecking);
-        // ✅ Always stop checking after attempt
-        setIsChecking(false);
-      }
-    };
-    checkAuth();
-  }, []);
-
-  // prevent rendering stack until auth check is done
-  if (isChecking || loading) {
-    return <LoadingApp />;
-  }
-  // ------------------------------------------------
-
-  const authenticate = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please enter both email and password.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const res = await firebaseAuth(email, password, type);
-
-      if (res) {
-        console.log("1 Auth Done ");
-
-        await fetchUser(); // ✅ ensure store is updated
-        console.log("2 user fetched");
-
-        initSocket(); // now user.firebaseUid will exist
-        console.log("3 init socket");
-
-        // Use router.replace to prevent going back to the login screen
-        router.replace("/(main)/home");
-        console.log("4 routing to home");
-      }
-    } catch (error) {
-      console.error("Authentication failed:", error);
-      // Use Alert.alert for better user experience than generic alert()
-      Alert.alert(
-        "Authentication Failed",
-        "The credentials you entered are incorrect or the account does not exist. Please check your email and password and try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const isLogin = type === "login";
+  useAuth(setIsChecking);
+  const router = useRouter();
+  if (isChecking || isLoading) {
+    return <LoadingScreen isLoading={isLoading} />;
+  }
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      className="flex-1 bg-white"
+      style={{ flex: 1 }}
     >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        className="px-6 py-12"
-        contentContainerClassName="justify-center"
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          padding: 24,
+        }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <View className="mb-10 mt-8">
-          <Text className="text-4xl font-extrabold text-gray-900 mb-2">
-            Let's {isLogin ? "Sign You In" : "Get Started"}
+        {/* App Icon/Logo */}
+        <View style={{ alignItems: "center", marginBottom: 32 }}>
+          <View
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 20,
+              backgroundColor: "#fca311",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 24,
+            }}
+          >
+            <Ionicons name="car" size={40} color="#ffffff" />
+          </View>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: "600",
+              color: "black",
+              marginBottom: 8,
+            }}
+          >
+            Welcome to RideFlow
           </Text>
-          <Text className="text-base text-gray-500">
+          <Text style={{ fontSize: 16, color: "black" }}>
             {isLogin
-              ? "Welcome back! You’ve been missed."
-              : "Create an account to join the community."}
+              ? "Sign in to continue your journey"
+              : "Create your account to get started"}
           </Text>
         </View>
 
-        {/* Form */}
-        <View className="space-y-5">
-          {/* Email Input */}
-          <View>
-            <Text className="text-base font-semibold text-gray-700 mb-2">
+        {/* Form Card */}
+        <View
+          style={{
+            backgroundColor: "#14213d",
+            borderRadius: 24,
+            padding: 24,
+            borderWidth: 1,
+            borderColor: "rgba(229, 229, 229, 0.1)",
+          }}
+        >
+          {/* Email Field */}
+          <View style={{ marginBottom: 20 }}>
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "500",
+                color: "#e5e5e5",
+                marginBottom: 8,
+              }}
+            >
               Email
             </Text>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              placeholder="Enter your email"
-              placeholderTextColor="#999"
-              className="rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-base text-black shadow-sm"
-            />
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "rgba(0, 0, 0, 0.3)",
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: "#fca311",
+                paddingHorizontal: 16,
+                paddingVertical: 4,
+              }}
+            >
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color="#fca311"
+                style={{ marginRight: 12 }}
+              />
+              <TextInput
+                value={email}
+                onChangeText={(text) =>
+                  setLoginForm({ ...loginForm, email: text })
+                }
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholder="your@email.com"
+                placeholderTextColor="#e5e5e5"
+                style={{
+                  flex: 1,
+                  fontSize: 16,
+                  color: "#ffffff",
+                  paddingVertical: 12,
+                }}
+              />
+            </View>
           </View>
 
-          {/* Password Input with Toggle */}
-          <View>
-            <Text className="text-base font-semibold text-gray-700 mb-2">
+          {/* Password Field */}
+          <View style={{ marginBottom: 24 }}>
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "500",
+                color: "#e5e5e5",
+                marginBottom: 8,
+              }}
+            >
               Password
             </Text>
-            <View className="flex-row items-center rounded-xl border border-gray-300 bg-gray-50 px-4 shadow-sm">
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "rgba(0, 0, 0, 0.3)",
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: "#fca311",
+                paddingHorizontal: 16,
+                paddingVertical: 4,
+              }}
+            >
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color="#fca311"
+                style={{ marginRight: 12 }}
+              />
               <TextInput
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(text) =>
+                  setLoginForm({ ...loginForm, password: text })
+                }
                 secureTextEntry={!showPassword}
-                placeholder="Enter your password"
-                placeholderTextColor="#999"
-                className="flex-1 py-3 text-base text-black"
+                placeholder="••••••••"
+                placeholderTextColor="#e5e5e5"
+                style={{
+                  flex: 1,
+                  fontSize: 16,
+                  color: "#ffffff",
+                  paddingVertical: 12,
+                }}
               />
               <TouchableOpacity
-                onPress={() => setShowPassword((prev) => !prev)}
+                onPress={() =>
+                  setLoginForm({ ...loginForm, showPassword: !showPassword })
+                }
                 activeOpacity={0.7}
-                className="p-1"
+                style={{ padding: 4 }}
               >
                 <Ionicons
-                  name={showPassword ? "eye-off" : "eye"}
-                  size={24}
-                  color="#555"
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={20}
+                  color="#e5e5e5"
                 />
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Sign In/Register Button */}
+          {/* Forgot Password - Only show on login */}
+          {isLogin && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={{ alignSelf: "flex-end", marginBottom: 24 }}
+            >
+              <Text
+                style={{ fontSize: 14, color: "#fca311", fontWeight: "500" }}
+              >
+                Forgot password?
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Submit Button */}
           <TouchableOpacity
-            onPress={authenticate}
-            className="bg-blue-600 rounded-xl py-4 items-center mt-6 shadow-lg shadow-blue-200"
+            onPress={() => {
+              authenticate(router);
+            }}
+            style={{
+              backgroundColor: "#fca311",
+              borderRadius: 12,
+              paddingVertical: 16,
+              alignItems: "center",
+              opacity: isLoading ? 0.7 : 1,
+            }}
             activeOpacity={0.8}
-            disabled={loading}
+            disabled={isLoading}
           >
-            {loading ? (
-              <ActivityIndicator color="#ffffff" size="small" />
+            {isLoading ? (
+              <ActivityIndicator color="#000000" />
             ) : (
-              <Text className="text-white font-bold text-lg">
-                {isLogin ? "Sign In" : "Register"}
+              <Text
+                style={{ color: "#000000", fontSize: 16, fontWeight: "600" }}
+              >
+                {isLogin ? "Sign In" : "Sign Up"}
               </Text>
             )}
           </TouchableOpacity>
+        </View>
 
-          {/* Footer - Toggle Auth Type */}
+        {/* Footer Toggle */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: 24,
+          }}
+        >
+          <Text style={{ fontSize: 14, color: "black" }}>
+            {isLogin ? "Don't have an account? " : "Already have an account? "}
+          </Text>
           <TouchableOpacity
             onPress={() => setType(isLogin ? "register" : "login")}
-            className="items-center pt-4"
+            activeOpacity={0.7}
           >
-            <Text className="text-base text-gray-500">
-              {isLogin
-                ? "Don't have an account? "
-                : "Already have an account? "}
-              <Text className="text-blue-600 font-bold">
-                {isLogin ? "Register" : "Login"}
-              </Text>
+            <Text style={{ fontSize: 14, color: "#fca311", fontWeight: "600" }}>
+              {isLogin ? "Sign up" : "Sign in"}
             </Text>
           </TouchableOpacity>
         </View>

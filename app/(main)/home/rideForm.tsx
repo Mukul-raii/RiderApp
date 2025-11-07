@@ -1,9 +1,9 @@
 import { LocationPin } from "@/app/components/locationPin";
-import { useMap } from "@/src/hooks/useMap";
-import { rideDetails, useRideStore } from "@/src/stores/rider";
+import { useMap } from "@/src/stores/useMap";
+import { useRideStore } from "@/src/stores/useRiderStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Text,
@@ -13,42 +13,40 @@ import {
 } from "react-native";
 import { auth } from "../../../src/utils/firebaseConfig";
 import { RideService } from "@/src/services/rideService";
+import { LinearGradient } from "expo-linear-gradient";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { goBack } from "expo-router/build/global-state/routing";
 
 const Page = () => {
-  const user = auth.currentUser;
-  const { from_address, to_address } = useRideStore((state) => state.rideForm);
-  const setRideForm = useRideStore((state) => state.setRideForm);
-  const startRide = useRideStore((state) => state.startRide);
-  const rideFormData = useRideStore((state) => state.rideForm);
+  const {
+    setRideForm,
+    startRide,
+    rideForm,
+    loading,
+    getliveRide,
+    liveRide,
+    isRideReady,
+    setRideDetails,
+  } = useRideStore();
+  const { from_address, to_address } = rideForm;
 
-  const loading = useRideStore((state) => state.loading);
-
-  const fetchRides = useRideStore((state) => state.getliveRide);
-  const rideData = useRideStore((state) => state.liveRide);
-
-  const listenRideEvents = useRideStore((state) => state.listenRideEvents);
   const { showMap, setShowMap } = useMap((state) => state);
   const [mapType, setMapType] = useState<"pickup" | "dropoff">("pickup");
-  const isRideReady = useRideStore((state) => state.isRideReady);
-  const rideService = new RideService();
+  const rideService = useMemo(() => new RideService(), []);
+
   useEffect(() => {
-    fetchRides();
+    useRideStore.getState().getliveRide();
   }, []);
 
   useEffect(() => {
     if (isRideReady) {
-      console.log("isRideReady changed:", isRideReady);
-
       const fetch = async () => {
-        const res = await rideService.getDistance(rideFormData);
-        useRideStore.setState({
-          rideDetails: {
-            estimatedDistance: res.distance,
-            estimatedTime: res.duration,
-            estimatedfare: res.estimatedprices,
-          },
+        const res = await rideService.getDistance(rideForm);
+        setRideDetails({
+          estimatedDistance: res.distance,
+          estimatedTime: res.duration,
+          estimatedfare: res.estimatedprices,
         });
-        console.log("rideDetails:", res);
       };
       fetch();
       router.push("/home/ridePrepared");
@@ -56,129 +54,133 @@ const Page = () => {
   }, [isRideReady]);
 
   const onSubmit = async () => {
-    const res = await startRide();
+    await startRide();
   };
-
   if (showMap) {
     return <LocationPin type={mapType} setShowMap={setShowMap} />;
   }
+
   return (
-    <View className="flex-1 bg-white px-5 py-6">
-      {/* Back Button + Header */}
-      <View className="flex-row items-center mb-8">
-        <Ionicons
-          name="arrow-back"
-          size={24}
-          color="black"
-          onPress={() => router.navigate("/(main)/home")}
-        />
-        <Text className="text-2xl font-bold ml-3">Drop</Text>
-      </View>
-
-      {/* Pickup Location */}
-      <TouchableOpacity
-        onPress={() => {
-          setMapType("pickup");
-          setShowMap(true);
-        }}
-        className="mb-4"
+    <LinearGradient
+      colors={["#ffffff", "#e5e5e5"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      className="flex-1 px-5 py-6 pt-14"
+    >
+      {/* Header */}
+      <Animated.View
+        entering={FadeInDown}
+        className="flex-row items-center mb-8"
       >
-        <View className="flex-row items-center border border-gray-300 rounded-2xl p-4 bg-gray-50">
-          <View className="h-4 w-4 rounded-full bg-green-600 mr-4" />
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.replace("/(main)/home"); // or router.navigate("/(main)/home")
+          }}
+          className="w-10 h-10 rounded-xl bg-[#14213d]/10 items-center justify-center"
+        >
+          <Ionicons name="arrow-back" size={22} color="#14213d" />
+        </TouchableOpacity>
+        <Text className="text-2xl font-bold ml-4 text-[#14213d]">
+          Plan Your Ride
+        </Text>
+      </Animated.View>
+
+      {/* Card */}
+      <Animated.View
+        entering={FadeInUp.delay(80)}
+        className="bg-[#ffffff] rounded-3xl p-6 shadow-sm border border-[#e5e5e5]"
+      >
+        {/* Pickup */}
+        <TouchableOpacity
+          onPress={() => {
+            setMapType("pickup");
+            setShowMap(true);
+          }}
+          className="flex-row items-center bg-[#e5e5e5]/40 rounded-2xl p-4 mb-4 border border-[#e5e5e5]"
+        >
+          <View className="h-3 w-3 rounded-full bg-[#fca311] mr-4" />
           <TextInput
             editable={false}
-            placeholder="Your Current Location"
-            placeholderTextColor="#888"
-            className="flex-1 text-black"
+            placeholder="Your current location"
+            placeholderTextColor="#9ca3af"
             value={from_address || ""}
+            className="flex-1 text-[#000000] font-medium"
           />
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
 
-      {/* Drop Location */}
-      <TouchableOpacity
-        onPress={() => {
-          setMapType("dropoff");
-          setShowMap(true);
-        }}
-        className="mb-6"
-      >
-        <View className="flex-row items-center border border-gray-300 rounded-2xl p-4 bg-gray-50">
-          <View className="h-4 w-4 rounded-full bg-orange-500 mr-4" />
-          <TextInput
-            editable={false}
-            placeholder="Drop location"
-            placeholderTextColor="#888"
-            className="flex-1 text-black"
-            value={to_address || ""}
-          />
-        </View>
-      </TouchableOpacity>
-
-      {/* Action Buttons */}
-      <View className="flex-row justify-between mb-8">
+        {/* Drop */}
         <TouchableOpacity
           onPress={() => {
             setMapType("dropoff");
             setShowMap(true);
           }}
-          className="flex-1 border border-gray-300 rounded-2xl py-4 items-center mr-2"
+          className="flex-row items-center bg-[#e5e5e5]/40 rounded-2xl p-4 border border-[#e5e5e5]"
         >
-          <Ionicons name="map" size={20} color="#000" />
-          <Text className="text-black mt-1">Select on map</Text>
+          <View className="h-3 w-3 rounded-full bg-[#14213d] mr-4" />
+          <TextInput
+            editable={false}
+            placeholder="Where are you going?"
+            placeholderTextColor="#9ca3af"
+            value={to_address || ""}
+            className="flex-1 text-[#000000] font-medium"
+          />
         </TouchableOpacity>
 
-        <TouchableOpacity className="flex-1 border border-gray-300 rounded-2xl py-4 items-center ml-2">
-          <Ionicons name="add" size={20} color="#000" />
-          <Text className="text-black mt-1">Add stops</Text>
+        {/* Action Buttons */}
+        <View className="flex-row justify-between mt-6">
+          <TouchableOpacity
+            onPress={() => {
+              setMapType("dropoff");
+              setShowMap(true);
+            }}
+            className="flex-1 bg-[#14213d]/10 rounded-2xl py-4 items-center mr-3 border border-[#14213d]/20"
+          >
+            <Ionicons name="map-outline" size={20} color="#14213d" />
+            <Text className="text-[#14213d] mt-1 text-sm">Use Map</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-1 bg-[#14213d]/10 rounded-2xl py-4 items-center ml-3 border border-[#14213d]/20">
+            <Ionicons name="add" size={20} color="#14213d" />
+            <Text className="text-[#14213d] mt-1 text-sm">Add Stop</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+
+      {/* Find Ride Button */}
+      <Animated.View entering={FadeInUp.delay(140)} className="mt-8">
+        <TouchableOpacity
+          onPress={onSubmit}
+          activeOpacity={0.9}
+          className="rounded-2xl overflow-hidden"
+        >
+          <LinearGradient
+            colors={["#fca311", "#14213d"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            className="py-4 items-center"
+          >
+            <Text className="text-white font-semibold text-lg">
+              Find My Ride
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
-      {/* Start Ride */}
-      <TouchableOpacity
-        onPress={onSubmit}
-        className="bg-black rounded-2xl py-4 items-center"
-      >
-        <Text className="text-white font-semibold text-lg">Start Ride</Text>
-      </TouchableOpacity>
-
-      {/* Loading Overlay */}
+      {/* Loading */}
       {loading && (
-        <View className="absolute bottom-6 left-6 right-6 flex-row items-center justify-between bg-gray-800 px-5 py-3 rounded-2xl">
+        <Animated.View
+          entering={FadeInUp}
+          className="absolute bottom-6 left-6 right-6 flex-row items-center justify-between bg-[#14213d] px-5 py-3 rounded-2xl shadow-lg"
+        >
           <Text className="text-white font-medium">
             Searching for rides nearby...
           </Text>
-          <ActivityIndicator color="#fff" />
-        </View>
+          <ActivityIndicator color="#fca311" />
+        </Animated.View>
       )}
-
-      {/* Ride Details Card */}
-      {rideData && (
-        <View className="mt-8 border border-gray-200 bg-gray-50 p-5 rounded-2xl shadow-sm">
-          <Text className="text-xl font-bold text-black mb-4">
-            🚖 Ride Details
-          </Text>
-          <Text className="text-gray-800">
-            <Text className="font-semibold">Ride ID:</Text> {rideData.id}
-          </Text>
-          <Text className="text-gray-800">
-            <Text className="font-semibold">From:</Text> {rideData.fromLocation}
-          </Text>
-          <Text className="text-gray-800">
-            <Text className="font-semibold">To:</Text> {rideData.toLocation}
-          </Text>
-          <Text
-            className={`font-semibold ${
-              rideData.status === "ASSIGNED"
-                ? "text-green-600"
-                : "text-yellow-600"
-            }`}
-          >
-            Status: {rideData.status}
-          </Text>
-        </View>
-      )}
-    </View>
+    </LinearGradient>
   );
 };
 

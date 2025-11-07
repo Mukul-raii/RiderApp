@@ -1,121 +1,186 @@
 import { MapLocation } from "@/app/components/map";
-import { useMap } from "@/src/hooks/useMap";
-import { useRideStore } from "@/src/stores/rider";
+import { useGlobalLoader } from "@/src/stores/useGlobalLoader";
+import { useMap } from "@/src/stores/useMap";
+import { useRideStore } from "@/src/stores/useRiderStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function RidePrepared() {
   const { rideForm, rideDetails } = useRideStore();
+  const startRide = useRideStore((state) => state.startRide);
+  const clearMapState = useMap((s) => s.clearMapState);
+  const clearRide = useRideStore((s) => s.clearRide);
+  const distanceKm = (rideDetails.estimatedDistance / 1000).toFixed(2);
+  const timeMin = (rideDetails.estimatedTime / 60).toFixed(2);
+  const fare = rideDetails.estimatedfare;
+  const { getdirectionCoordinate } = useMap();
+  const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    useGlobalLoader.getState().show();
+    getdirectionCoordinate();
+    useGlobalLoader.getState().hide();
+  }, []);
 
   const handleStartRide = async () => {
-    await useRideStore.getState().startRide();
-    console.log("🚀 Ride started!");
-
-    // Navigate to the ride in progress screen
+    useGlobalLoader.getState().show();
+    await startRide();
     router.replace("/(main)/home");
+    useGlobalLoader.getState().hide();
   };
 
   useFocusEffect(
     useCallback(() => {
       return () => {
-        console.log("RidePrepared unmounting");
-        useMap.getState().clearMapState();
-        useRideStore.getState().clearRide();
-        console.log("RidePrepared unmounted");
+        clearMapState();
+        clearRide();
       };
     }, []),
   );
+
   return (
     <View style={styles.container}>
-      {/* 🗺️ Map Layer - Full Screen */}
-      <View style={styles.mapContainer}>
-        <MapLocation />
+      {/* 🗺️ Map Layer */}
+      <View style={styles.mapWrapper}>
+        <View style={styles.mapContainer}>
+          <MapLocation />
+        </View>
       </View>
 
-      {/* 📍 Bottom Sheet Layer - Overlay */}
-      <View style={styles.bottomSheet}>
-        <Text className="text-2xl font-bold mb-5">🚖 Ride Details</Text>
+      {/* ✅ Bottom Sheet */}
+      <View style={[styles.bottomSheet, { paddingBottom: insets.bottom + 70 }]}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerIcon}>🚕</Text>
+          <Text style={styles.headerTitle}>Ride Details</Text>
+        </View>
 
-        <View className="flex-row justify-between mb-3">
-          <Text className="text-base text-gray-600 font-medium">
-            Destination:
-          </Text>
-          <Text
-            className="text-base font-semibold text-black w-1/2 text-right"
-            numberOfLines={2}
-          >
+        {/* Section */}
+        <View style={styles.row}>
+          <Text style={styles.label}>Destination:</Text>
+          <Text style={styles.value} numberOfLines={2}>
             {rideForm.to_address}
           </Text>
         </View>
 
-        <View className="flex-row justify-between mb-3">
-          <Text className="text-base text-gray-600 font-medium">Distance:</Text>
-          <Text className="text-base font-semibold text-black">
-            {Number(rideDetails.estimatedDistance / 1000).toFixed(2)} Km
-          </Text>
-        </View>
-        <View className="flex-row justify-between mb-3">
-          <Text className="text-base text-gray-600 font-medium">Time:</Text>
-          <Text className="text-base font-semibold text-black">
-            {Number(rideDetails.estimatedTime / 60).toFixed(2)} min
-          </Text>
+        <View style={styles.separator} />
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Distance:</Text>
+          <Text style={styles.value}>{distanceKm} Km</Text>
         </View>
 
-        <View className="flex-row justify-between mb-6">
-          <Text className="text-base text-gray-600 font-medium">
-            Estimated Fare:
-          </Text>
-          <Text className="text-base font-semibold text-green-600">
-            Rs. {rideDetails.estimatedfare}
-          </Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Time:</Text>
+          <Text style={styles.value}>{timeMin} min</Text>
         </View>
 
+        <View style={styles.row}>
+          <Text style={styles.label}>Estimated Fare:</Text>
+          <Text style={[styles.value, { color: "#10b981" }]}>Rs. {fare}</Text>
+        </View>
+
+        {/* Start Ride Button */}
         <TouchableOpacity
           onPress={handleStartRide}
-          className="bg-black py-4 rounded-2xl mt-2 items-center"
           activeOpacity={0.8}
+          style={styles.startBtn}
         >
-          <Text className="text-white text-lg font-semibold">Start Ride</Text>
+          <Text style={styles.startBtnText}>Start Ride</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: "relative",
+    backgroundColor: "#fff",
+  },
+  mapWrapper: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: "hidden", // ✅ IMPORTANT FIX
+    zIndex: 0,
   },
   mapContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: "100%",
-    height: "100%",
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
   },
   bottomSheet: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "white",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
+    backgroundColor: "#ffffff",
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 30,
+    elevation: 15,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
     borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
+    borderTopColor: "#f0f0f0",
+  },
+
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 18,
+  },
+  headerIcon: {
+    fontSize: 26,
+    marginRight: 8,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#111",
+  },
+
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 14,
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#6b7280",
+  },
+  value: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#111",
+    maxWidth: "55%",
+    textAlign: "right",
+    lineHeight: 20,
+  },
+
+  separator: {
+    height: 1,
+    backgroundColor: "#e5e7eb",
+    marginBottom: 16,
+  },
+
+  startBtn: {
+    backgroundColor: "#000",
+    paddingVertical: 16,
+    borderRadius: 20,
+    marginTop: 20,
+    alignItems: "center",
+  },
+  startBtnText: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#fff",
   },
 });
