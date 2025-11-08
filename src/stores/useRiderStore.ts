@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { RideService } from "../services/rideService";
-import { joinRiderRoom } from "../utils/socket";
-import { userStore } from "./user";
 import { socketConnection } from "../utils/socket";
+import { userStore } from "./user";
 
 const rideService = new RideService();
 
@@ -26,7 +25,7 @@ export const useRideStore = create<RideState>((set, get) => ({
     from_address: string,
     to_lat: number,
     to_lng: number,
-    to_address: string,
+    to_address: string
   ) => {
     set({
       rideForm: {
@@ -59,7 +58,7 @@ export const useRideStore = create<RideState>((set, get) => ({
         to_lng,
         to_address,
       });
-      socket.joinRoom(ride.id);
+      socket.joinRoom(user.firebaseUid);
       await rideService.requestRide(ride);
       set({ liveRide: ride });
     } catch (error) {
@@ -136,7 +135,7 @@ interface RideState {
     from_address: string,
     to_lat: number,
     to_lng: number,
-    to_address: string,
+    to_address: string
   ) => void;
   startRide: () => Promise<void>;
   getAllRides: () => Promise<void>;

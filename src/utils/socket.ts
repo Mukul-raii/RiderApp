@@ -1,7 +1,6 @@
 // socket connection component
 import { io } from "socket.io-client";
 import { socketStore } from "../stores/socketStore";
-import { useRideStore } from "../stores/useRiderStore";
 
 export class socketConnection {
   private socket: any;
@@ -51,13 +50,15 @@ export class socketConnection {
     });
   }
 
-  private SOCKET_EVENTS = ["rideAccepted,rideRequested,ride_completed"];
+  // Fix the event array - should be separate strings
+  private SOCKET_EVENTS = ["rideAccepted", "rideRequested", "ride_completed"];
 
   public joinRoom = (riderId: string) => {
     this.socket.emit("joinRiderRoom", riderId);
     console.log(`🧑 Rider ${riderId} joined room rider:${riderId}`);
   };
-  public emitRequest = (request: string, data: any) => {
-    this.socket.emit(request, data);
+  public emitRideRequest = (rideData: any, userId: string) => {
+    console.log("🚀 Emitting ride request:", rideData, userId);
+    this.socket.emit("rideRequest", { rideData, userId });
   };
 }

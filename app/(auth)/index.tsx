@@ -1,10 +1,10 @@
-import { getValueFor } from "@/src/services/userService";
-import { userStore } from "@/src/stores/user";
-import { initSocket } from "@/src/utils/socket";
-import { firebaseAuth } from "@/src/utils/userAuth";
+import { useAuth } from "@/src/hooks/useAuth";
+import { useAuthStore } from "@/src/stores/useAuthStore";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,13 +12,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Alert,
-  ActivityIndicator,
 } from "react-native";
 import LoadingScreen from "../components/loadingScreens";
-import { Ionicons } from "@expo/vector-icons";
-import { useAuthStore } from "@/src/stores/useAuthStore";
-import { useAuth } from "@/src/hooks/useAuth";
 
 export default function Index() {
   const {
@@ -75,7 +70,7 @@ export default function Index() {
               marginBottom: 8,
             }}
           >
-            Welcome to RideFlow
+            Welcome to EcoLift
           </Text>
           <Text style={{ fontSize: 16, color: "black" }}>
             {isLogin
